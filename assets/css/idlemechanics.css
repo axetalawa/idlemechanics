@@ -1,0 +1,40 @@
+body {
+  margin: 0;
+  background-color: black;
+  color: white;
+  overflow-x: hidden;
+  font-family: 'Inter', sans-serif;
+}
+
+section.simulation {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+iframe.sim-frame {
+  width: 100%;
+  height: 100%;
+  border: none;
+  background: black;
+  transition: opacity 1s ease-in-out;
+}
+
+.controls {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  opacity: 0.3;
+  cursor: pointer;
+  transition: opacity 0.3s ease;
+}
+.controls:hover {
+  opacity: 0.8;
+}
+
+.fade-out { opacity: 0; }
+.fade-in { opacity: 1; }
