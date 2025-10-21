@@ -77,28 +77,35 @@ function collectWorks(folderPath) {
 function buildSets(categoryPath) {
   const sets = [];
 
-  // This folder as a set (if it has any works)
-  const selfMeta = safeReadJSON(path.join(categoryPath, 'meta.json')) || {};
-  const selfWorks = collectWorks(categoryPath);
-  if (selfWorks.length > 0) {
-    sets.push({
-      name: selfMeta.title || path.basename(categoryPath),
-      ...(selfMeta.duration ? { duration: selfMeta.duration } : {}),
-      works: selfWorks
-    });
-  }
+  // list subfolders in this category
+  const entries = list(categoryPath);
+  const subdirs = entries.filter(e => e.isDirectory());
 
-  // Each immediate subfolder that contains works becomes its own set
-  for (const e of list(categoryPath)) {
-    if (!e.isDirectory()) continue;
+  // Case 1: if category has subfolders with works, treat each as a set
+  let foundSubsets = false;
+  for (const e of subdirs) {
     const setPath = path.join(categoryPath, e.name);
     const meta = safeReadJSON(path.join(setPath, 'meta.json')) || {};
     const works = collectWorks(setPath);
     if (works.length > 0) {
+      foundSubsets = true;
       sets.push({
-        name: meta.title || e.name,
+        name: meta.title || e.name.charAt(0).toUpperCase() + e.name.slice(1),
         ...(meta.duration ? { duration: meta.duration } : {}),
         works
+      });
+    }
+  }
+
+  // Case 2: if there are no subfolder sets, fall back to this folder as one set
+  if (!foundSubsets) {
+    const selfMeta = safeReadJSON(path.join(categoryPath, 'meta.json')) || {};
+    const selfWorks = collectWorks(categoryPath);
+    if (selfWorks.length > 0) {
+      sets.push({
+        name: selfMeta.title || path.basename(categoryPath),
+        ...(selfMeta.duration ? { duration: selfMeta.duration } : {}),
+        works: selfWorks
       });
     }
   }
