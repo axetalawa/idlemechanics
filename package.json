@@ -2,6 +2,7 @@
   "name": "idle-mechanics",
   "version": "1.0.0",
   "description": "Immersive static site for Idle Mechanics simulations.",
+  "type": "module",
   "scripts": {
     "generate": "node scripts/generateManifest.js",
     "build": "npm run generate",

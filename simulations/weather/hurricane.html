@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Maelstrom [Interactive Simulation]</title>
+    <style>
+        /* Basic styles to ensure the canvas fills the screen */
+        body, html {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            height: 100%;
+            width: 100%;
+            background-color: #000;
+            cursor: none; /* Hide cursor for a more immersive feel */
+        }
+        canvas {
+            display: block;
+        }
+
+        /* Styles for the Maelstrom Control Node */
+        .control-node {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            padding: 15px;
+            background: rgba(10, 25, 40, 0.5);
+            border: 1px solid rgba(95, 204, 255, 0.3);
+            border-radius: 8px;
+            display: flex;
+            align-items: center; /* Center items for new sound toggle */
+            flex-direction: column;
+            gap: 15px;
+            opacity: 0.3;
+            transition: opacity 0.3s ease;
+            z-index: 10;
+        }
+        .control-node:hover {
+            opacity: 0.9;
+        }
+        .knob {
+            width: 150px;
+            height: 10px;
+            background: rgba(0,0,0,0.5);
+            border-radius: 5px;
+            position: relative;
+            /* MODIFIED: Removed cursor change to prevent flickering */
+        }
+        .knob-handle {
+            position: absolute;
+            top: -2.5px;
+            left: 50%; /* Initial position */
+            width: 15px;
+            height: 15px;
+            background: #5fccff;
+            border-radius: 50%;
+            transform: translateX(-50%);
+            box-shadow: 0 0 5px #fff, 0 0 8px #5fccff;
+        }
+
+        /* NEW: Styles for the sound toggle button */
+        #sound-toggle {
+            width: 24px;
+            height: 24px;
+            cursor: pointer;
+            border: 1px solid rgba(95, 204, 255, 0.3);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(10, 25, 40, 0.8);
+            margin-bottom: 10px; /* Space it from the knobs */
+        }
+        #sound-toggle svg {
+            width: 14px;
+            height: 14px;
+            fill: #5fccff;
+        }
+        #sound-toggle .icon-sound-on { display: none; }
+        #sound-toggle .icon-sound-off { display: block; }
+        #sound-toggle.enabled .icon-sound-on { display: block; }
+        #sound-toggle.enabled .icon-sound-off { display: none; }
+
+    </style>
+</head>
+<body>
+    <!-- The canvas is the primary display element -->
+    <canvas id="glcanvas"></canvas>
+
+    <!-- Maelstrom Control Node UI -->
+    <div class="control-node" id="control-node">
+        <!-- NEW: Sound Toggle Button -->
+        <div id="sound-toggle">
+            <svg class="icon-sound-on" viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"></path></svg>
+            <svg class="icon-sound-off" viewBox="0 0 24 24"><path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"></path></svg>
+        </div>
+        <div class="knob" id="knob-structure">
+            <div class="knob-handle"></div>
+        </div>
+        <div class="knob" id="knob-energy">
+            <div class="knob-handle"></div>
+        </div>
+        <div class="knob" id="knob-hue">
+            <div class="knob-handle"></div>
+        </div>
+    </div>
+    
+    <!-- External library for 3D graphics -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+    <!-- SHADERS: The rendering logic for the visuals -->
+    <script id="vortex-background-vs" type="x-shader/x-vertex">
+        varying vec2 vUv; 
+        void main() { 
+            vUv = uv; 
+            gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); 
+        }
+    </script>
+    <script id="vortex-background-fs" type="x-shader/x-fragment">
+        /* ... (Shader code unchanged) ... */
+        uniform vec2 u_resolution;
+        uniform float u_time;
+        uniform vec2 u_mouse;
+        uniform float u_charge_level;
+        uniform vec3 u_cataclysm;
+        uniform float u_hurricane_category;
+        uniform vec2 u_hotspot_pos;
+        uniform float u_structure;
+        uniform float u_energy;
+        uniform float u_hue;
+        uniform float u_pressure;
+        uniform vec3 u_overload;
+
+        varying vec2 vUv;
+        vec2 mouse_uv;
+
+        vec3 mod289(vec3 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
+        vec4 mod289(vec4 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
+        vec4 permute(vec4 x) { return mod289(((x*34.0)+1.0)*x); }
+        vec4 taylorInvSqrt(vec4 r) { return 1.79284291400159 - 0.85373472095314 * r; }
+        float snoise(vec3 v) { const vec2 C = vec2(1.0/6.0, 1.0/3.0); const vec4 D = vec4(0.0, 0.5, 1.0, 2.0); vec3 i = floor(v + dot(v, C.yyy) ); vec3 x0 = v - i + dot(i, C.xxx); vec3 g = step(x0.yzx, x0.xyz); vec3 l = 1.0 - g; vec3 i1 = min( g.xyz, l.zxy ); vec3 i2 = max( g.xyz, l.zxy ); vec3 x1 = x0 - i1 + C.xxx; vec3 x2 = x0 - i2 + C.yyy; vec3 x3 = x0 - D.yyy; i = mod289(i); vec4 p = permute( permute( permute( i.z + vec4(0.0, i1.z, i2.z, 1.0 )) + i.y + vec4(0.0, i1.y, i2.y, 1.0 )) + i.x + vec4(0.0, i1.x, i2.x, 1.0 )); float n_ = 0.142857142857; vec3 ns = n_ * D.wyz - D.xzx; vec4 j = p - 49.0 * floor(p * ns.z * ns.z); vec4 x_ = floor(j * ns.z); vec4 y_ = floor(j - 7.0 * x_); vec4 x = x_ *ns.x + ns.yyyy; vec4 y = y_ *ns.x + ns.yyyy; vec4 h = 1.0 - abs(x) - abs(y); vec4 b0 = vec4( x.xy, y.xy ); vec4 b1 = vec4( x.zw, y.zw ); vec4 s0 = floor(b0)*2.0 + 1.0; vec4 s1 = floor(b1)*2.0 + 1.0; vec4 sh = -step(h, vec4(0.0)); vec4 a0 = b0.xzyw + s0.xzyw*sh.xxyy; vec4 a1 = b1.xzyw + s1.xzyw*sh.zzww; vec3 p0 = vec3(a0.xy,h.x); vec3 p1 = vec3(a0.zw,h.y); vec3 p2 = vec3(a1.xy,h.z); vec3 p3 = vec3(a1.zw,h.w); vec4 norm = taylorInvSqrt(vec4(dot(p0,p0), dot(p1,p1), dot(p2, p2), dot(p3,p3))); p0 *= norm.x; p1 *= norm.y; p2 *= norm.z; p3 *= norm.w; vec4 m = max(0.6 - vec4(dot(x0,x0), dot(x1,x1), dot(x2,x2), dot(x3,x3)), 0.0); m = m * m; return 42.0 * dot( m*m, vec4( dot(p0,x0), dot(p1,x1), dot(p2,x2), dot(p3,x3) ) ); }
+        float fbm(vec3 p) { float value = 0.0; float amplitude = 0.5; float frequency = 2.0; for (int i = 0; i < 4; i++) { value += amplitude * snoise(p * frequency); frequency *= 2.0; amplitude *= 0.5; } return value; }
+        
+        vec3 hsv2rgb(vec3 c) {
+            vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
+            vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);
+            return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);
+        }
+
+        float map(vec3 p) {
+            float dist = distance(p.xy, mouse_uv);
+            float radius = mix(1.0, 2.0, u_structure);
+            float category_boost = u_hurricane_category / 2.0;
+            float vortexStrength = (smoothstep(radius, 0.0, dist) + u_charge_level) * 2.0 * category_boost;
+            float angle = atan(p.y - mouse_uv.y, p.x - mouse_uv.x);
+            vec2 rotation = vec2(cos(angle), sin(angle));
+            vec2 vortex_force = vec2(rotation.y, -rotation.x) * vortexStrength;
+            float rotation_speed = mix(2.0, 0.5, u_energy);
+            float pressure_z = mix(1.0, 0.2, u_pressure);
+            vec3 q1 = vec3(p.xy * 0.8 + vortex_force, p.z*pressure_z - u_time * 0.2 * rotation_speed);
+            vec3 q2 = vec3(p.xy * (2.0 * category_boost) + vortex_force, p.z*pressure_z - u_time * 0.5 * rotation_speed);
+            float noise = fbm(q1) * 0.6 + fbm(q2) * 0.4;
+            return smoothstep(0.1, 0.6, noise);
+        }
+        
+        vec3 getColor(float density, float dist) {
+            vec3 col1 = vec3(0.0, 0.05, 0.1); 
+            vec3 col2 = vec3(0.2, 0.3, 0.7); 
+            vec3 col3 = vec3(0.9, 0.9, 1.0);
+            vec3 color = mix(col1, col2, smoothstep(0.0, 0.5, density));
+            color = mix(color, col3, smoothstep(0.4, 1.0, density));
+            float category_factor = (u_hurricane_category - 2.0) / 3.0; 
+            vec3 eye_hsv = vec3(u_hue, 0.8 + category_factor * 0.2, 0.5 + u_charge_level * 0.5);
+            vec3 eye_color = hsv2rgb(eye_hsv) * 2.0;
+            float eye_glow = smoothstep(0.2, 0.0, dist);
+            return mix(color, eye_color, eye_glow * 0.7);
+        }
+        
+        float lightning(vec2 uv, float time, float seed) { uv *= mat2(cos(seed), -sin(seed), sin(seed), cos(seed)); float noise = snoise(vec3(uv * 10.0, time * 2.0 + seed)); float path = abs(uv.x + noise * 0.1); return pow(1.0 - smoothstep(0.0, 0.05, path), 20.0); }
+
+        void main() {
+            vec2 uv = (gl_FragCoord.xy * 2.0 - u_resolution.xy) / u_resolution.y;
+            mouse_uv = (u_mouse * 2.0 - u_resolution.xy) / u_resolution.y;
+            vec3 ro = vec3(uv, 0.0); vec3 rd = vec3(0.0, 0.0, 1.0);
+            vec4 accumulated_color = vec4(0.0); float light_transmission = 1.0;
+            
+            float hotspot_dist = distance(uv, u_hotspot_pos);
+            float hotspot_glow = smoothstep(0.3, 0.0, hotspot_dist) * (1.0 - sin(u_time * 2.0 + hotspot_dist * 10.0) * 0.5) * 0.3;
+            accumulated_color.rgb += vec3(0.8, 0.3, 0.1) * hotspot_glow;
+
+            for(int i = 0; i < 40; i++) { vec3 p = ro + rd * float(i) * 0.03; float density = map(p); if (density > 0.01) { float dist_to_eye = distance(p.xy, mouse_uv); vec3 light_color = getColor(density, dist_to_eye); vec3 step_color = light_color * light_transmission; float alpha = density * 0.1; accumulated_color.rgb += step_color * alpha * (1.0 - accumulated_color.a); accumulated_color.a += alpha * (1.0 - accumulated_color.a); light_transmission *= 1.0 - density * 0.15; } if(accumulated_color.a > 0.99 || light_transmission < 0.01) break; }
+
+            if(u_cataclysm.x > 0.0 && u_cataclysm.x < u_cataclysm.y) { float time_since = u_cataclysm.x; float duration = u_cataclysm.y; float intensity = pow(1.0 - smoothstep(0.0, duration, time_since), 2.0); float l = 0.0; l += lightning(uv, time_since, 1.0) * 0.6; l += lightning(uv, time_since, 2.5); l += lightning(uv, time_since, 4.0) * 0.8; l += lightning(uv, time_since, 5.5); l += lightning(uv, time_since, 7.0) * 0.5; accumulated_color.rgb += vec3(1.0, 1.0, 1.5) * l * intensity * 2.5; }
+
+            if(u_overload.z > 0.0) {
+                float time_since_overload = u_overload.x;
+                float overload_duration = u_overload.y;
+                float radius = time_since_overload / overload_duration;
+                float wave_thickness = 0.05;
+                float dist_from_center = distance(uv, mouse_uv);
+                float wave = smoothstep(radius, radius - wave_thickness, dist_from_center) * smoothstep(radius - wave_thickness * 2.0, radius - wave_thickness, dist_from_center);
+                wave *= (1.0 - radius);
+                accumulated_color.rgb += vec3(1.5, 1.8, 2.0) * wave * 2.0;
+            }
+
+            gl_FragColor = accumulated_color;
+        }
+    </script>
+    <script id="gpgpu-compute-fs" type="x-shader/x-fragment">
+        /* ... (Shader code unchanged) ... */
+        uniform sampler2D t_pos; 
+        uniform vec2 u_resolution; 
+        uniform float u_time; 
+        uniform vec2 u_mouse;
+        uniform float u_hurricane_category;
+        uniform float u_structure;
+        uniform vec2 u_wind_shear_dir;
+        uniform float u_wind_shear_y_pos;
+        uniform float u_wind_shear_height;
+        uniform vec3 u_shockwave;
+
+        varying vec2 vUv; 
+        float rand(vec2 n) { return fract(sin(dot(n, vec2(12.9898, 4.1414))) * 43758.5453); } 
+        void main() { 
+            vec2 pos = texture2D(t_pos, vUv).xy; 
+            vec2 mouse_uv = (u_mouse * 2.0 - u_resolution.xy) / u_resolution.y; 
+            float dist = distance(pos, mouse_uv); 
+            float radius = mix(1.0, 2.0, u_structure);
+            float vortexStrength = smoothstep(radius, 0.0, dist) * 2.0 * (u_hurricane_category / 2.0);
+            float angle = atan(pos.y - mouse_uv.y, pos.x - mouse_uv.x); 
+            vec2 rotation = vec2(cos(angle), sin(angle)); 
+            vec2 vortex_force = vec2(rotation.y, -rotation.x) * vortexStrength; 
+            pos += vortex_force * 0.005; 
+
+            if(pos.y > u_wind_shear_y_pos && pos.y < u_wind_shear_y_pos + u_wind_shear_height) {
+                pos += u_wind_shear_dir * 0.002;
+            }
+
+            if(u_shockwave.z > 0.0) {
+                vec2 shock_origin = (u_shockwave.xy * 2.0 - u_resolution.xy) / u_resolution.y;
+                vec2 dir = normalize(pos - shock_origin);
+                float dist_from_shock = distance(pos, shock_origin);
+                float shock_radius = u_shockwave.z * 5.0;
+                float shock_force = smoothstep(shock_radius, shock_radius - 0.5, dist_from_shock) * (1.0 - u_shockwave.z);
+                pos += dir * shock_force * 0.1;
+            }
+            
+            if (dist < 0.05 || dist > (radius + 0.5)) { 
+                float random_angle = rand(vUv + u_time) * 2.0 * 3.14159; 
+                pos = mouse_uv + vec2(cos(random_angle), sin(random_angle)) * (radius + rand(vUv) * 0.5); 
+            } 
+            gl_FragColor = vec4(pos, 0.0, 1.0); 
+        }
+    </script>
+    <script id="debris-render-vs" type="x-shader/x-vertex"> /* ... (unchanged) ... */ uniform sampler2D t_pos; void main() { vec3 pos = texture2D(t_pos, position.xy).xyz; gl_PointSize = mix(2.0, 0.5, smoothstep(0.0, 0.5, distance(pos.xy, vec2(0.0,0.0)))); gl_Position = projectionMatrix * modelViewMatrix * vec4(pos.xy, 0.0, 1.0); }</script>
+    <script id="debris-render-fs" type="x-shader/x-fragment"> /* ... (unchanged) ... */ void main() { gl_FragColor = vec4(vec3(0.7), 0.5); }</script>
+
+    <!-- MAIN JAVASCRIPT: The core simulation logic -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Basic Three.js setup
+            const scene = new THREE.Scene();
+            const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+            const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('glcanvas') });
+            const clock = new THREE.Clock();
+            
+            let targetMouse = new THREE.Vector2(); 
+            let vortexCenter = new THREE.Vector2();
+            let vortexVelocity = new THREE.Vector2();
+            let springConstant = 0.00025;
+            const damping = 0.97; 
+
+            // Hurricane phase logic variables
+            let hurricaneCategory = 1.0;
+            let isCharging = false;
+            let chargeLevel = 0.0;
+            let cataclysmActive = false;
+            let cataclysmStartTime = -1;
+            const CATACLYSM_DURATION = 1.0; 
+
+            // --- INTERACTIVITY VARIABLES ---
+            const thermalHotspot = new THREE.Vector2(-0.7, 0.0);
+            const WIND_SHEAR_Y_POS = 0.2;
+            const WIND_SHEAR_HEIGHT = 0.5;
+            let structure = 0.5, energy = 0.5, hue = 0.6;
+            let pressure = 0.5;
+            let isOverload = false;
+            let overloadStartTime = -1;
+            const OVERLOAD_DURATION = 0.5;
+            let shockwaveTime = -1;
+
+            // --- NEW: Sound Control Variables ---
+            let isMuted = true;
+            let audioCtx, isAudioReady = false, highWindFilter, highWindGain, chargeWindFilter, chargeWindGain, waveRoar, waveRoarGain, waveLFO, waveLFOGain;
+            
+            async function initAudio() {
+                if (isAudioReady) return; 
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)(); 
+                const noiseProcessor = `class WN extends AudioWorkletProcessor{process(i,o,p){o[0].forEach(c=>{for(let i=0;i<c.length;i++){c[i]=Math.random()*2-1}});return true}}registerProcessor('wn',WN)`; 
+                const blob = new Blob([noiseProcessor], { type: 'application/javascript' }); 
+                await audioCtx.audioWorklet.addModule(URL.createObjectURL(blob)); 
+                const whiteNoise = new AudioWorkletNode(audioCtx, 'wn'); 
+                waveRoarGain = audioCtx.createGain(); waveRoarGain.gain.setValueAtTime(0, audioCtx.currentTime); 
+                waveRoar = audioCtx.createBiquadFilter(); waveRoar.type = 'lowpass'; waveRoar.frequency.setValueAtTime(120, audioCtx.currentTime); waveRoar.Q.setValueAtTime(2.5, audioCtx.currentTime); 
+                waveLFO = audioCtx.createOscillator(); waveLFO.type = 'sine'; waveLFO.frequency.setValueAtTime(0.3, audioCtx.currentTime); waveLFO.start(); 
+                waveLFOGain = audioCtx.createGain(); waveLFOGain.gain.setValueAtTime(0, audioCtx.currentTime); 
+                waveLFO.connect(waveLFOGain).connect(waveRoarGain.gain); 
+                whiteNoise.connect(waveRoar).connect(waveRoarGain).connect(audioCtx.destination); 
+                highWindGain = audioCtx.createGain(); highWindGain.gain.setValueAtTime(0.2, audioCtx.currentTime); 
+                highWindFilter = audioCtx.createBiquadFilter(); highWindFilter.type = 'bandpass'; highWindFilter.frequency.setValueAtTime(1000, audioCtx.currentTime); highWindFilter.Q.setValueAtTime(2, audioCtx.currentTime); 
+                whiteNoise.connect(highWindGain).connect(highWindFilter).connect(audioCtx.destination); 
+                chargeWindGain = audioCtx.createGain(); chargeWindGain.gain.setValueAtTime(0, audioCtx.currentTime); 
+                chargeWindFilter = audioCtx.createBiquadFilter(); chargeWindFilter.type = 'bandpass'; chargeWindFilter.frequency.setValueAtTime(200, audioCtx.currentTime); chargeWindFilter.Q.setValueAtTime(15, audioCtx.currentTime); 
+                whiteNoise.connect(chargeWindGain).connect(chargeWindFilter).connect(audioCtx.destination); 
+                isAudioReady = true; 
+                // NEW: Suspend audio immediately if muted
+                if (isMuted) {
+                    audioCtx.suspend();
+                }
+            }
+            function triggerCataclysmAudio() { /* ... (unchanged) ... */ if(!isAudioReady || isMuted) return; const crack = new AudioWorkletNode(audioCtx, 'wn'); const crackGain = audioCtx.createGain(); crackGain.gain.setValueAtTime(1.2, audioCtx.currentTime); crackGain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.4); crack.connect(crackGain).connect(audioCtx.destination); setTimeout(() => crack.disconnect(), 500); }
+            function triggerOverloadAudio() { if(!isAudioReady || isMuted) return; const boom = new AudioWorkletNode(audioCtx, 'wn'); const boomGain = audioCtx.createGain(); boomGain.gain.setValueAtTime(2.0, audioCtx.currentTime); boomGain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + OVERLOAD_DURATION); const boomFilter = audioCtx.createBiquadFilter(); boomFilter.type = 'lowpass'; boomFilter.frequency.setValueAtTime(500, audioCtx.currentTime); boomFilter.frequency.exponentialRampToValueAtTime(50, audioCtx.currentTime + OVERLOAD_DURATION); boom.connect(boomFilter).connect(boomGain).connect(audioCtx.destination); setTimeout(() => boom.disconnect(), OVERLOAD_DURATION * 1000 + 100); }
+            
+            // --- GPGPU and Material Setup (omitted for brevity) ---
+            const vortexMaterial = new THREE.ShaderMaterial({ uniforms: { u_time: { value: 0.0 }, u_resolution: { value: new THREE.Vector2() }, u_mouse: { value: new THREE.Vector2() }, u_charge_level: {value: 0.0}, u_cataclysm: {value: new THREE.Vector3()}, u_hurricane_category: {value: 1.0}, u_hotspot_pos: { value: thermalHotspot }, u_structure: {value: structure}, u_energy: {value: energy}, u_hue: {value: hue}, u_pressure: {value: pressure}, u_overload: {value: new THREE.Vector3()} }, vertexShader: document.getElementById('vortex-background-vs').textContent, fragmentShader: document.getElementById('vortex-background-fs').textContent });
+            const gpgpuMaterial = new THREE.ShaderMaterial({ uniforms: { t_pos: { value: null }, u_time: { value: 0.0 }, u_resolution: { value: new THREE.Vector2() }, u_mouse: { value: new THREE.Vector2() }, u_hurricane_category: {value: 1.0}, u_structure: {value: structure}, u_wind_shear_dir: {value: new THREE.Vector2(1.0, 0.0)}, u_wind_shear_y_pos: {value: WIND_SHEAR_Y_POS}, u_wind_shear_height: {value: WIND_SHEAR_HEIGHT}, u_shockwave: { value: new THREE.Vector3(0,0,0) } }, vertexShader: document.getElementById('vortex-background-vs').textContent, fragmentShader: document.getElementById('gpgpu-compute-fs').textContent });
+            const vortexPlane = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), vortexMaterial); scene.add(vortexPlane); const PARTICLE_COUNT = 128 * 128; const TEXTURE_SIZE = 128; const data = new Float32Array(PARTICLE_COUNT * 4); for (let i = 0; i < PARTICLE_COUNT; i++) { const i4 = i * 4; const r = (Math.random() * 2.0 - 1.0) * 1.5; const a = Math.random() * Math.PI * 2.0; data[i4 + 0] = Math.cos(a) * r; data[i4 + 1] = Math.sin(a) * r; data[i4 + 2] = 0; data[i4 + 3] = 1; } const posTexture = new THREE.DataTexture(data, TEXTURE_SIZE, TEXTURE_SIZE, THREE.RGBAFormat, THREE.FloatType); posTexture.needsUpdate = true; let rt1 = new THREE.WebGLRenderTarget(TEXTURE_SIZE, TEXTURE_SIZE, { type: THREE.FloatType }); let rt2 = new THREE.WebGLRenderTarget(TEXTURE_SIZE, TEXTURE_SIZE, { type: THREE.FloatType }); renderer.copyTextureToTexture(new THREE.Vector2(0,0), posTexture, rt1.texture); const gpgpuScene = new THREE.Scene(); const gpgpuPlane = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), gpgpuMaterial); gpgpuScene.add(gpgpuPlane); const debrisMaterial = new THREE.ShaderMaterial({ uniforms: { t_pos: { value: null } }, vertexShader: document.getElementById('debris-render-vs').textContent, fragmentShader: document.getElementById('debris-render-fs').textContent, transparent: true, blending: THREE.AdditiveBlending }); const debrisGeometry = new THREE.BufferGeometry(); const debrisPositions = new Float32Array(PARTICLE_COUNT * 3); for (let i = 0; i < PARTICLE_COUNT; i++) { const i3 = i * 3; debrisPositions[i3 + 0] = (i % TEXTURE_SIZE) / TEXTURE_SIZE; debrisPositions[i3 + 1] = Math.floor(i / TEXTURE_SIZE) / TEXTURE_SIZE; } debrisGeometry.setAttribute('position', new THREE.BufferAttribute(debrisPositions, 3)); const debris = new THREE.Points(debrisGeometry, debrisMaterial); scene.add(debris);
+            
+            function animate() {
+                requestAnimationFrame(animate);
+                const elapsedTime = clock.getElapsedTime();
+                const deltaTime = clock.getDelta();
+                
+                let chargeRate = deltaTime * 0.5;
+                const vortexCenterUV = new THREE.Vector2((vortexCenter.x * 2.0 - window.innerWidth) / window.innerHeight, (vortexCenter.y * 2.0 - window.innerHeight) / window.innerHeight);
+                if (vortexCenterUV.distanceTo(thermalHotspot) < 0.3) {
+                    chargeRate *= 3.0;
+                }
+
+                if (isCharging) {
+                    chargeLevel = Math.min(1.0, chargeLevel + chargeRate); 
+                    if(chargeLevel >= 1.0) {
+                        if(hurricaneCategory < 5) { hurricaneCategory++; chargeLevel = 0.0; } 
+                        else if (!cataclysmActive) { cataclysmActive = true; cataclysmStartTime = elapsedTime; triggerCataclysmAudio(); }
+                    }
+                } else {
+                    chargeLevel = Math.max(0.0, chargeLevel - deltaTime * 2.0);
+                }
+
+                let categoryDecay = deltaTime * 0.1;
+                if(vortexCenterUV.y > WIND_SHEAR_Y_POS && vortexCenterUV.y < WIND_SHEAR_Y_POS + WIND_SHEAR_HEIGHT){
+                    categoryDecay *= 3.0;
+                }
+                if(hurricaneCategory > 1) {
+                    hurricaneCategory = Math.max(1.0, hurricaneCategory - categoryDecay);
+                }
+                
+                springConstant = mix(0.0001, 0.0005, energy);
+
+                if(cataclysmActive) { const timeSince = elapsedTime - cataclysmStartTime; if(timeSince > CATACLYSM_DURATION) { cataclysmActive = false; cataclysmStartTime = -1; vortexMaterial.uniforms.u_cataclysm.value.set(0,0,0); } else { vortexMaterial.uniforms.u_cataclysm.value.set(timeSince, CATACLYSM_DURATION, 1.0); } }
+                if(isOverload) {
+                    const timeSinceOverload = elapsedTime - overloadStartTime;
+                    if(timeSinceOverload > OVERLOAD_DURATION) { isOverload = false; overloadStartTime = -1; vortexMaterial.uniforms.u_overload.value.set(0,0,0); } 
+                    else { vortexMaterial.uniforms.u_overload.value.set(timeSinceOverload, OVERLOAD_DURATION, 1.0); }
+                }
+                if(shockwaveTime > 0.0) {
+                    shockwaveTime += deltaTime;
+                    if (shockwaveTime > 1.0) shockwaveTime = -1.0;
+                    gpgpuMaterial.uniforms.u_shockwave.value.z = shockwaveTime;
+                }
+                
+                const force = new THREE.Vector2().subVectors(targetMouse, vortexCenter);
+                const acceleration = force.multiplyScalar(springConstant);
+                vortexVelocity.add(acceleration);
+                vortexVelocity.multiplyScalar(damping);
+                vortexCenter.add(vortexVelocity);
+
+                if (isAudioReady && !isMuted) {
+                    const speed = vortexVelocity.length(); const categoryFactor = (hurricaneCategory -1) / 4; const roarBaseVolume = Math.min(speed * 150.0, 0.3) + categoryFactor * 0.4; const waveRhythm = 0.3 + Math.min(speed * 30.0, 5.0) + categoryFactor * 2.0; const waveDepth = Math.min(speed * 150.0, 0.2) + categoryFactor * 0.3; waveRoarGain.gain.setTargetAtTime(roarBaseVolume, audioCtx.currentTime, 0.1); waveLFO.frequency.setTargetAtTime(waveRhythm, audioCtx.currentTime, 0.1); waveLFOGain.gain.setTargetAtTime(waveDepth, audioCtx.currentTime, 0.1); const highWindFreq = 1000 + Math.min(speed * 50000.0, 15000); highWindFilter.frequency.setTargetAtTime(highWindFreq, audioCtx.currentTime, 0.1); chargeWindGain.gain.setTargetAtTime(chargeLevel * 0.4, audioCtx.currentTime, 0.05); chargeWindFilter.frequency.setTargetAtTime(400 + chargeLevel * 2000, audioCtx.currentTime, 0.05);
+                }
+
+                // --- Rendering ---
+                vortexMaterial.uniforms.u_charge_level.value = chargeLevel;
+                vortexMaterial.uniforms.u_hurricane_category.value = hurricaneCategory;
+                vortexMaterial.uniforms.u_structure.value = structure;
+                vortexMaterial.uniforms.u_energy.value = energy;
+                vortexMaterial.uniforms.u_hue.value = hue;
+                vortexMaterial.uniforms.u_pressure.value = pressure;
+                gpgpuMaterial.uniforms.u_hurricane_category.value = hurricaneCategory;
+                gpgpuMaterial.uniforms.u_structure.value = structure;
+                vortexMaterial.uniforms.u_mouse.value.copy(vortexCenter);
+                gpgpuMaterial.uniforms.u_mouse.value.copy(vortexCenter);
+                gpgpuMaterial.uniforms.t_pos.value = rt1.texture;
+                gpgpuMaterial.uniforms.u_time.value = elapsedTime;
+                renderer.setRenderTarget(rt2);
+                renderer.render(gpgpuScene, camera);
+                renderer.setRenderTarget(null);
+                debrisMaterial.uniforms.t_pos.value = rt2.texture;
+                vortexMaterial.uniforms.u_time.value = elapsedTime;
+                renderer.render(scene, camera);
+                const temp = rt1; rt1 = rt2; rt2 = temp;
+            }
+            
+            function onWindowResize() { /* ... (unchanged) ... */ const width = window.innerWidth; const height = window.innerHeight; renderer.setSize(width, height); vortexMaterial.uniforms.u_resolution.value.set(width, height); gpgpuMaterial.uniforms.u_resolution.value.set(width, height); targetMouse.set(width / 2, height - (height / 2)); vortexCenter.set(width / 2, height - (height / 2)); }
+            function onMouseMove(event) { targetMouse.set(event.clientX, window.innerHeight - event.clientY); }
+
+            function setupKnob(knobId, callback) {
+                const knob = document.getElementById(knobId);
+                const handle = knob.querySelector('.knob-handle');
+                let isDragging = false;
+                
+                const updateKnob = (clientX) => {
+                    const rect = knob.getBoundingClientRect();
+                    const value = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
+                    handle.style.left = `${value * 100}%`;
+                    callback(value);
+                };
+
+                knob.addEventListener('mousedown', (e) => { isDragging = true; updateKnob(e.clientX); });
+                window.addEventListener('mousemove', (e) => { if (isDragging) updateKnob(e.clientX); });
+                window.addEventListener('mouseup', () => { isDragging = false; });
+            }
+            setupKnob('knob-structure', (value) => { structure = value; });
+            setupKnob('knob-energy', (value) => { energy = value; });
+            setupKnob('knob-hue', (value) => { hue = value; });
+            
+            window.addEventListener('wheel', (e) => { pressure = Math.max(0, Math.min(1, pressure - e.deltaY * 0.001)); }, { passive: false });
+
+            window.addEventListener('contextmenu', (e) => {
+                e.preventDefault();
+                if (cataclysmActive && !isOverload) {
+                    isOverload = true;
+                    overloadStartTime = clock.getElapsedTime();
+                    hurricaneCategory = 1.0;
+                    chargeLevel = 0.0;
+                    cataclysmActive = false;
+                    gpgpuMaterial.uniforms.u_shockwave.value.set(vortexCenter.x, window.innerHeight - vortexCenter.y, 0.001);
+                    shockwaveTime = 0.001;
+                    triggerOverloadAudio();
+                }
+            });
+
+            // NEW: Sound Toggle Listener
+            const soundToggle = document.getElementById('sound-toggle');
+            soundToggle.addEventListener('click', () => {
+                isMuted = !isMuted;
+                soundToggle.classList.toggle('enabled', !isMuted);
+                if (isAudioReady) {
+                    if (isMuted) {
+                        audioCtx.suspend();
+                    } else {
+                        audioCtx.resume();
+                    }
+                }
+            });
+
+            const mix = (a, b, t) => a * (1 - t) + b * t;
+
+            window.addEventListener('mousedown', () => { isCharging = true; if (!isAudioReady) { initAudio(); } });
+            window.addEventListener('mouseup', () => { isCharging = false; });
+            
+            onWindowResize();
+            window.addEventListener('resize', onWindowResize);
+            window.addEventListener('mousemove', onMouseMove);
+            animate();
+        });
+    </script>
+</body>
+</html>
+

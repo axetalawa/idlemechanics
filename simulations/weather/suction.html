@@ -1,0 +1,935 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Subduction</title> <meta charset="UTF-8">
+    <script src="https://cdn.tailwindcss.com"></script> <style>
+        /* Basic page styling */
+        body {
+            margin: 0;
+            overflow: hidden; /* Prevent scrollbars */
+            background-color: #000; /* Black background */
+            color: #e0e0e0; /* Light default text color */
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex; /* Helps center canvas if needed */
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        /* Canvas styling */
+        canvas {
+            display: block; /* Remove extra space below canvas */
+            position: absolute; /* Position canvas behind text */
+            top: 0;
+            left: 0;
+            z-index: 1; /* Behind other UI */
+            cursor: crosshair; /* Indicate interactivity */
+            width: 100%;  /* Make canvas fill width */
+            height: 100%; /* Make canvas fill height */
+        }
+
+        /* Control Panel Styling */
+        #controls-panel {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            z-index: 2; /* Above canvas */
+            background-color: rgba(10, 25, 47, 0.8); /* Darker, richer navy */
+            backdrop-filter: blur(5px);
+            padding: 16px;
+            border-radius: 8px;
+            border: 1px solid rgba(56, 189, 248, 0.3); /* Brighter sky blue border */
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6); /* Deeper shadow */
+            color: #b0e0e6; /* Light cyan text */
+            font-size: 0.8rem; /* Smaller font size */
+            display: flex;
+            flex-direction: column;
+            gap: 12px; /* Space between button and sliders */
+            width: 120px; /* Set a fixed width for the panel */
+        }
+        #controls-panel .control-row {
+            display: flex;
+            align-items: center;
+            gap: 8px; /* Space between label/input and value */
+        }
+        #controls-panel input[type="range"] {
+            width: 100%; /* Use width instead of flex-grow */
+            height: 4px;
+            cursor: pointer;
+            appearance: none; /* Override default look */
+            background: rgba(14, 116, 144, 0.4); /* Dark cyan track */
+            border-radius: 2px;
+            outline: none;
+        }
+        /* Style for Chrome/Safari slider thumb */
+        #controls-panel input[type="range"]::-webkit-slider-thumb {
+            appearance: none;
+            width: 12px;
+            height: 12px;
+            background: #67e8f9; /* Vibrant cyan thumb */
+            border-radius: 50%;
+            cursor: pointer;
+        }
+        /* Style for Firefox slider thumb */
+        #controls-panel input[type="range"]::-moz-range-thumb {
+            width: 12px;
+            height: 12px;
+            background: #67e8f9; /* Vibrant cyan thumb */
+            border-radius: 50%;
+            cursor: pointer;
+            border: none; /* Remove default border */
+        }
+
+    </style>
+</head>
+<body>
+    <canvas id="simulationCanvas"></canvas>
+
+    <div id="controls-panel">
+         <button
+            id="actionButton"
+            class="w-full font-bold py-2 px-4 rounded-lg shadow-lg shadow-indigo-950/50 transition duration-300 ease-in-out
+                   bg-gradient-to-br from-sky-700 via-indigo-800 to-purple-900
+                   text-cyan-100 border border-sky-500/50
+                   hover:from-sky-600 hover:via-indigo-700 hover:to-purple-800 hover:shadow-sky-500/40 hover:border-sky-400/70
+                   active:translate-y-px"
+        >
+        </button>
+        <div>
+            <div class="control-row">
+                <input type="range" id="emergenceRate" name="emergenceRate" min="0" max="100" value="50">
+            </div>
+        </div>
+        <div>
+            <div class="control-row">
+                <input type="range" id="temporalFlow" name="temporalFlow" min="0" max="100" value="50">
+            </div>
+        </div>
+        <div>
+            <div class="control-row">
+                <input type="range" id="surfaceInfluence" name="surfaceInfluence" min="0" max="100" value="40">
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        // --- Canvas Setup ---
+        const canvas = document.getElementById('simulationCanvas');
+        const ctx = canvas.getContext('2d');
+        const actionButton = document.getElementById('actionButton'); // Keep actionButton reference
+
+        // --- Mouse Tracking ---
+        let mouseX = 0;
+        let mouseY = 0;
+        let isMouseOverCanvas = false; // Flag to track if mouse is over the canvas
+
+        // --- Color Helper Functions ---
+        // Converts a hex color string to an RGB object
+        function hexToRgb(hex) {
+            var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+            return result ? {
+                r: parseInt(result[1], 16),
+                g: parseInt(result[2], 16),
+                b: parseInt(result[3], 16)
+            } : { r: 0, g: 0, b: 0 }; // Default to black if invalid
+        }
+        // Linearly interpolates between two RGB colors
+        function lerpColor(rgb1, rgb2, factor) {
+           factor = Math.max(0, Math.min(1, factor)); // Clamp factor between 0 and 1
+           const r = Math.round(rgb1.r + (rgb2.r - rgb1.r) * factor);
+           const g = Math.round(rgb1.g + (rgb2.g - rgb1.g) * factor);
+           const b = Math.round(rgb1.b + (rgb2.b - rgb1.b) * factor);
+           return { r, g, b };
+        }
+        // Maps a value from one range to another
+        function mapRange(value, inMin, inMax, outMin, outMax) {
+           // Clamp value to the input range
+           value = Math.max(inMin, Math.min(inMax, value));
+           // Perform the linear mapping
+           return outMin + (outMax - outMin) * (value - inMin) / (inMax - inMin);
+        }
+
+
+        // --- Color Palette ---
+        // Defines named colors used in the simulation
+        const PALETTE = {
+            // New "Supernova" theme
+            deepSpace: '#4338ca', // Indigo
+            electricBlue: '#3b82f6', // Blue
+            brightCyan: '#22d3ee', // Cyan
+            solarFlare: '#f59e0b', // Amber
+            sunYellow: '#facc15', // Yellow
+            whiteHot: '#fef08a',  // Light Yellow
+            sparklePink: '#f472b6', // Pink for sparkles
+
+            // Specific palettes
+            stormColors: [ // Gradient for storm intensity from deep space to supernova
+                '#4338ca', // Deep Space (Weakest)
+                '#3b82f6', // Electric Blue
+                '#22d3ee', // Bright Cyan
+                '#f59e0b', // Solar Flare
+                '#facc15', // Sun Yellow
+                '#fef08a'  // White Hot (Strongest)
+            ],
+            starColor: '#FFFFFF' // White for stars
+        };
+        // Pre-calculate RGB versions of palette colors for performance
+        const PALETTE_RGB = {};
+        for (const key in PALETTE) {
+            if (typeof PALETTE[key] === 'string' && PALETTE[key].startsWith('#')) {
+                PALETTE_RGB[key] = hexToRgb(PALETTE[key]);
+            }
+        }
+        // Convert storm color array to RGB
+        PALETTE_RGB.stormColorsRgb = PALETTE.stormColors.map(hex => hexToRgb(hex));
+
+
+        // --- Simulation Parameters (Mutable via Controls) ---
+        // These parameters control the behavior and appearance of the simulation
+        let PARAMS = {
+             // Storm Generation & Lifecycle
+             MAX_ACTIVE_STORMS: 15,          // Max concurrent storms (increased slightly)
+             STORM_SPAWN_PROBABILITY: 0.01, // Chance per frame to spawn a new storm (if below max)
+             MIN_LIFESPAN: 800,              // Base lifespan in simulation units
+             MAX_LIFESPAN_VARIATION: 1200,   // Random addition to base lifespan
+             TIME_SCALE: 0.01,               // Multiplier for how fast simulation time progresses
+             STORM_MERGE_ENABLED: true,      // Whether storms can merge
+             STORM_MERGE_DISTANCE_FACTOR: 0.8, // Factor of radii sum for merge check
+
+             // Storm Properties
+             MIN_MAX_STRENGTH: 0.08,         // Base peak strength (influences rotation, pull)
+             MAX_STRENGTH_VARIATION: 0.08,   // Random addition to peak strength
+             MIN_MAX_RADIUS: 150,            // Base peak radius (visual size)
+             MAX_RADIUS_VARIATION: 150,      // Random addition to peak radius
+             MIN_EYE_RADIUS: 5,              // Base radius of the storm's eye
+             MAX_EYE_RADIUS_VARIATION: 20,   // Random addition to eye radius
+
+             // Storm Movement
+             MIN_VX: -0.3,                   // Base initial horizontal velocity (westward)
+             MAX_VX_VARIATION: -0.4,         // Random addition to initial vx (more westward)
+             MIN_VY: -0.05,                  // Base initial vertical velocity
+             MAX_VY_VARIATION: 0.1,          // Random addition to initial vy (north/south)
+             NORTHWARD_TURN_STRENGTH: 0.3,   // How strongly storms curve north in southern hemisphere
+             NORTHWARD_TURN_Y_THRESHOLD: 0,  // Y-coordinate threshold for northward turn (set in resize)
+             LAND_RECT: { x: 0, y: 0, width: 0, height: 0 }, // Area where storms dissipate faster (set in resize)
+             LAND_DISSIPATION_FACTOR: 5.0,   // Multiplier for age increase when over land
+
+             // Storm Formation Area (relative to canvas size, set in resize)
+             FORMATION_Y_MIN: 0, FORMATION_Y_MAX: 0,
+             FORMATION_X_MIN: 0, FORMATION_X_MAX: 0,
+
+             // Particle Properties & Behavior
+             BASE_PARTICLE_COUNT: 400,       // Minimum particles per storm
+             PARTICLES_PER_STRENGTH: 10000,  // How many more particles based on strength
+             PARTICLE_RADIUS: 1.0,           // Base visual size of particles
+             INWARD_PULL_FACTOR: 1.0,        // Strength of pull towards storm center
+             OUTWARD_EYE_FACTOR: 0.3,        // Strength of push away from the eye center
+             DAMPING: 0.96,                  // Velocity decay factor per frame (friction)
+             MAX_SPEED: 7.0,                 // Maximum particle speed
+             PARTICLE_BASE_LIFESPAN: 250,    // Base lifespan of a particle in simulation units
+             PARTICLE_LIFESPAN_VARIATION: 150,// Random addition to particle lifespan
+             INNER_REMOVAL_RADIUS_FACTOR: 1.5, // Factor of eye radius; particles inside this fade faster
+
+             // Particle Visuals
+             trailLength: 6,                 // Number of historical points for trails
+             particleBaseAlpha: 0.8,         // Starting opacity of particles
+             trailAlphaFactor: 0.6,          // Opacity multiplier for trails relative to particle
+             sizeSpeedFactor: 0.5,           // How much particle size increases with speed
+             alphaSpeedFactor: 0.3,          // How much particle alpha increases with speed
+             PARTICLE_GLOW_BLUR: 5,          // Canvas shadowBlur for particle glow
+             SPARKLE_CHANCE: 0.02,           // Chance for a particle to be a 'sparkle' (different color/glow)
+             SPARKLE_GLOW_BLUR: 8,           // Glow blur for sparkle particles
+             SPEED_COLOR_FACTOR: 0.8,        // How much particle color shifts towards yellow based on speed
+
+             // Performance Cap
+             MAX_TOTAL_PARTICLES: 20000,     // Global limit on the number of particles
+
+             // Special Storm (e.g., on button click)
+             MOTHER_STRENGTH_MULT: 1.8,      // Multiplier for the 'mother' storm's strength
+             MOTHER_RADIUS_MULT: 1.6,        // Multiplier for the 'mother' storm's radius
+             MOTHER_LIFESPAN_MULT: 1.5,      // Multiplier for the 'mother' storm's lifespan
+
+             // Mouse Interaction
+             MOUSE_ENABLED: true,            // Whether mouse interaction is active
+             MOUSE_FORCE_TYPE: 'repel',      // 'repel' or 'attract' particles
+             MOUSE_STORM_INFLUENCE_RADIUS: 300, // Radius around mouse where storm particles are checked
+             MOUSE_PARTICLE_INTERACTION_RADIUS: 100, // Radius around mouse where force is applied to particles
+             MOUSE_PARTICLE_CHECK_COUNT: 35, // Max particles checked per storm per frame for performance
+             MOUSE_FORCE_STRENGTH: 80        // Base strength of the mouse force
+        };
+        // Pre-calculate squared radii for performance in distance checks
+        PARAMS.MOUSE_STORM_INFLUENCE_RADIUS_SQ = PARAMS.MOUSE_STORM_INFLUENCE_RADIUS ** 2;
+        PARAMS.MOUSE_PARTICLE_INTERACTION_RADIUS_SQ = PARAMS.MOUSE_PARTICLE_INTERACTION_RADIUS ** 2;
+
+
+        // --- Starfield Parameters ---
+        const STARFIELD_PARAMS = {
+            NUM_STARS: 200,                 // Number of stars in the background
+            MIN_RADIUS: 0.3,                // Minimum star size
+            MAX_RADIUS_VAR: 1.2,            // Maximum random addition to star size
+            MIN_ALPHA: 0.2,                 // Minimum star opacity
+            MAX_ALPHA_VAR: 0.6,             // Maximum random addition to star opacity
+            BASE_SPEED: 0.03,               // Base horizontal speed (parallax effect)
+            SPEED_RADIUS_FACTOR: 0.8        // How much larger stars move faster
+        };
+
+        // --- Global State ---
+        let activeStorms = []; // Array to hold all current Storm objects
+        let currentTime = 0;   // Simulation time counter (no longer displayed)
+        let nextStormId = 0;   // Unique ID for each storm
+        let stars = [];        // Array to hold star objects for the background
+        let currentTotalParticles = 0; // Counter for total active particles across all storms
+
+        // --- Vector Helpers ---
+        // Basic vector operations (currently only limiting magnitude)
+        const Vector = {
+             // Limits the magnitude of a 2D vector (vx, vy) to a maximum value
+             limit: (vx, vy, max) => {
+                 const magSq = vx * vx + vy * vy; // Calculate squared magnitude
+                 // If magnitude exceeds max and max is positive
+                 if (magSq > max * max && max > 0) {
+                     const mag = Math.sqrt(magSq); // Calculate actual magnitude
+                     // Return scaled vector
+                     return { x: (vx / mag) * max, y: (vy / mag) * max };
+                 }
+                 // Return original vector if within limit or max is non-positive
+                 return { x: vx, y: vy };
+             }
+        };
+
+        // --- Helper Function: Get Smooth Storm Color based on Strength ---
+        // Interpolates smoothly between colors in the storm palette based on strength ratio
+         function getSmoothStormColorRgb(currentStrength, maxStrength) {
+             const colors = PALETTE_RGB.stormColorsRgb; // Get the array of RGB storm colors
+             if (maxStrength <= 0) { return colors[0]; } // Avoid division by zero, return weakest color
+
+             // Calculate strength ratio (0 to 1)
+             const strengthRatio = Math.min(1, Math.max(0, currentStrength / maxStrength));
+
+             const maxIndex = colors.length - 1;
+             const scaledRatio = strengthRatio * maxIndex; // Scale ratio to array index range
+             const index1 = Math.min(maxIndex - 1, Math.floor(scaledRatio)); // Get the lower color index
+             const index2 = index1 + 1; // Get the upper color index
+             const segmentFactor = scaledRatio - index1; // Get the interpolation factor within the segment
+
+             // Lerp between the two colors
+             return lerpColor(colors[index1], colors[index2], segmentFactor);
+         }
+
+        // --- Storm Class ---
+        // Represents a single storm system in the simulation
+        class Storm {
+            constructor(initialX, initialY) {
+                this.id = nextStormId++; // Assign unique ID
+                // Use provided coordinates, or random initial position within formation zone
+                this.x = initialX !== undefined ? initialX : PARAMS.FORMATION_X_MIN + Math.random() * (PARAMS.FORMATION_X_MAX - PARAMS.FORMATION_X_MIN);
+                this.y = initialY !== undefined ? initialY : PARAMS.FORMATION_Y_MIN + Math.random() * (PARAMS.FORMATION_Y_MAX - PARAMS.FORMATION_Y_MIN);
+                // Random initial velocity
+                this.vx = PARAMS.MIN_VX + Math.random() * PARAMS.MAX_VX_VARIATION;
+                this.vy = PARAMS.MIN_VY + Math.random() * PARAMS.MAX_VY_VARIATION;
+                // Random properties based on PARAMS ranges
+                this.maxLifespan = PARAMS.MIN_LIFESPAN + Math.random() * PARAMS.MAX_LIFESPAN_VARIATION;
+                this.maxStrength = PARAMS.MIN_MAX_STRENGTH + Math.random() * PARAMS.MAX_STRENGTH_VARIATION;
+                this.maxRadius = PARAMS.MIN_MAX_RADIUS + Math.random() * PARAMS.MAX_RADIUS_VARIATION;
+                this.eyeRadius = PARAMS.MIN_EYE_RADIUS + Math.random() * PARAMS.MAX_EYE_RADIUS_VARIATION;
+                // Initial state variables
+                this.age = 0;
+                this.currentStrength = 0;
+                this.currentRadius = this.eyeRadius * 2; // Start small
+                this.targetParticleCount = 0;
+                this.particles = []; // Array to hold particles belonging to this storm
+                this.state = 'forming'; // Initial state: 'forming', 'active', 'dissipating'
+                this.isOnLand = false; // Flag if the storm center is over the 'land' area
+                this.baseColorRgb = PALETTE_RGB.stormColorsRgb[0]; // Initial color (weakest)
+            }
+
+            // Updates the storm's state, position, and properties
+            update(deltaTime) {
+                // Check if storm center is over the defined land rectangle
+                this.isOnLand = (
+                    this.x > PARAMS.LAND_RECT.x && this.x < PARAMS.LAND_RECT.x + PARAMS.LAND_RECT.width &&
+                    this.y > PARAMS.LAND_RECT.y && this.y < PARAMS.LAND_RECT.y + PARAMS.LAND_RECT.height
+                );
+
+                // Increase age, faster if over land
+                this.age += deltaTime * (this.isOnLand ? PARAMS.LAND_DISSIPATION_FACTOR : 1.0);
+
+                // Calculate life ratio (0 to 1)
+                const lifeRatio = Math.min(1, this.age / this.maxLifespan);
+
+                // Determine strength and state based on life ratio (simple curve)
+                let strengthRatio = 0;
+                if (lifeRatio < 0.2) { // Forming phase (ramp up)
+                    strengthRatio = (lifeRatio / 0.2) * 0.8; // Ramps up to 80% of max strength
+                    this.state = 'forming';
+                } else if (lifeRatio < 0.7) { // Active phase (peak)
+                    strengthRatio = 0.8 + (lifeRatio - 0.2) / 0.5 * 0.2; // Ramps from 80% to 100%
+                    this.state = 'active';
+                } else { // Dissipating phase (ramp down)
+                    strengthRatio = 1.0 - ((lifeRatio - 0.7) / 0.3); // Ramps from 100% down to 0%
+                    this.state = 'dissipating';
+                }
+                strengthRatio = Math.max(0, Math.min(1, strengthRatio)); // Clamp ratio
+
+                // Apply strength ratio and land effect
+                this.currentStrength = this.maxStrength * strengthRatio * (this.isOnLand ? 0.5 : 1.0); // Weaker over land
+                this.currentRadius = this.eyeRadius + (this.maxRadius - this.eyeRadius) * strengthRatio; // Interpolate radius
+
+                // Update base color based on current strength
+                this.baseColorRgb = getSmoothStormColorRgb(this.currentStrength, this.maxStrength);
+
+                // --- Storm Movement ---
+                // Apply northward turning force if south of the threshold
+                let targetVy = this.vy;
+                if (this.y < PARAMS.NORTHWARD_TURN_Y_THRESHOLD) {
+                    // Stronger curve closer to the southern edge
+                    const curveFactor = (PARAMS.NORTHWARD_TURN_Y_THRESHOLD - this.y) / PARAMS.NORTHWARD_TURN_Y_THRESHOLD;
+                    targetVy -= curveFactor * PARAMS.NORTHWARD_TURN_STRENGTH * Math.abs(this.vx); // Turn depends on westward speed
+                }
+                // Gradually adjust vertical velocity towards the target
+                this.vy += (targetVy - this.vy) * 0.01 * deltaTime; // Slow adjustment
+
+                // Update position based on velocity
+                this.x += this.vx * deltaTime;
+                this.y += this.vy * deltaTime;
+
+                // --- Particle Management ---
+                // Calculate target number of particles based on current strength
+                this.targetParticleCount = Math.floor(PARAMS.BASE_PARTICLE_COUNT + this.currentStrength * PARAMS.PARTICLES_PER_STRENGTH);
+                const particlesToAdd = this.targetParticleCount - this.particles.length;
+
+                // Add new particles if needed (and not dissipating), up to a limit per frame
+                if (particlesToAdd > 0 && this.state !== 'dissipating') {
+                    for (let i = 0; i < Math.min(particlesToAdd, 50); i++) { // Add max 50 per frame
+                        this.addParticle();
+                    }
+                }
+
+                // --- Storm Removal Conditions ---
+                // Check if storm should be removed
+                if (this.age > this.maxLifespan ||                                  // Exceeded lifespan
+                   (this.state === 'dissipating' && this.particles.length < PARAMS.BASE_PARTICLE_COUNT * 0.1) || // Dissipated and few particles left
+                   this.x < -this.currentRadius * 2.5 || this.x > canvas.width + this.currentRadius * 2.5 || // Moved far off-screen
+                   this.y < -this.currentRadius * 2.5 || this.y > canvas.height + this.currentRadius * 2.5)
+                {
+                    return false; // Signal to remove the storm
+                }
+                return true; // Signal to keep the storm
+             }
+
+            // Adds a single particle to the storm
+            addParticle() {
+                // Check against global particle limit
+                if (currentTotalParticles >= PARAMS.MAX_TOTAL_PARTICLES) {
+                    return; // Don't add if cap is reached
+                }
+                // Spawn particle at a random angle and radius around the storm center
+                const angle = Math.random() * Math.PI * 2;
+                const radius = this.currentRadius * (0.9 + Math.random() * 0.3); // Spawn slightly outside/inside main radius
+                const x = this.x + Math.cos(angle) * radius;
+                const y = this.y + Math.sin(angle) * radius;
+
+                // Determine if this particle is a 'sparkle'
+                const isSparkle = Math.random() < PARAMS.SPARKLE_CHANCE;
+
+                // Create particle object
+                this.particles.push({
+                    x, y,
+                    vx: this.vx, vy: this.vy, // Initial velocity same as storm drift
+                    alpha: PARAMS.particleBaseAlpha * (0.7 + Math.random() * 0.3), // Random initial alpha
+                    history: [], // Array to store previous positions for trail
+                    stormId: this.id, // Reference to parent storm
+                    age: 0,
+                    maxAge: PARAMS.PARTICLE_BASE_LIFESPAN + Math.random() * PARAMS.PARTICLE_LIFESPAN_VARIATION, // Random lifespan
+                    isSparkle: isSparkle // Sparkle flag
+                });
+                currentTotalParticles++; // Increment global counter
+            }
+
+            // Calculates the force exerted by the storm on a particle 'p'
+            calculateForce(p) {
+                let forceX = 0, forceY = 0;
+                const dx = this.x - p.x; // Vector from particle to storm center
+                const dy = this.y - p.y;
+                const distSq = dx * dx + dy * dy; // Squared distance
+                const dist = Math.sqrt(distSq); // Distance
+
+                if (dist > 1) { // Avoid division by zero / extreme forces near center
+                    const normalizedX = dx / dist;
+                    const normalizedY = dy / dist;
+
+                    // --- Rotational Force (Tangent) ---
+                    // Strength decreases further from the center
+                    let rotationMag = this.currentStrength * (1 - dist / (this.currentRadius * 1.5));
+                    rotationMag = Math.min(rotationMag, this.currentStrength * 1.2); // Cap magnitude
+                    rotationMag = Math.max(0, rotationMag); // Ensure non-negative
+                    // Apply force perpendicular to the direction vector (swap and negate one component)
+                    forceX += -normalizedY * rotationMag;
+                    forceY += normalizedX * rotationMag;
+
+                    // --- Radial Force (Inward/Outward) ---
+                    if (dist < this.eyeRadius) {
+                        // --- Outward Push from Eye ---
+                        // Stronger push closer to the center of the eye
+                        let eyePush = (1 - dist / this.eyeRadius) * this.currentStrength * PARAMS.OUTWARD_EYE_FACTOR;
+                        forceX += -normalizedX * eyePush; // Push away from center
+                        forceY += -normalizedY * eyePush;
+                    } else if (dist < this.currentRadius * 1.2) { // Only apply inward pull within a certain range
+                        // --- Inward Pull towards Center ---
+                        // Strength increases slightly closer to the center (sqrt relationship)
+                        let inwardMag = this.currentStrength * PARAMS.INWARD_PULL_FACTOR * Math.pow(dist / this.currentRadius, 0.5);
+                        inwardMag = Math.min(inwardMag, this.currentStrength * PARAMS.INWARD_PULL_FACTOR * 1.5); // Cap magnitude
+                        inwardMag = Math.max(0, inwardMag); // Ensure non-negative
+                        forceX += normalizedX * inwardMag; // Pull towards center
+                        forceY += normalizedY * inwardMag;
+                    }
+                }
+                return { x: forceX, y: forceY };
+            }
+
+            // Updates all particles belonging to this storm
+            updateParticles(deltaTime) {
+                // Iterate backwards to allow safe removal using splice
+                for (let i = this.particles.length - 1; i >= 0; i--) {
+                    const p = this.particles[i];
+
+                    // --- Apply Forces & Update Velocity ---
+                    const force = this.calculateForce(p);
+                    p.age += deltaTime;
+                    p.vx += force.x * deltaTime;
+                    p.vy += force.y * deltaTime;
+
+                    // Apply damping (friction)
+                    p.vx *= PARAMS.DAMPING;
+                    p.vy *= PARAMS.DAMPING;
+
+                    // Limit maximum speed
+                    const limitedVel = Vector.limit(p.vx, p.vy, PARAMS.MAX_SPEED);
+                    p.vx = limitedVel.x;
+                    p.vy = limitedVel.y;
+
+                    // Update position
+                    p.x += p.vx * deltaTime;
+                    p.y += p.vy * deltaTime;
+
+                    // --- Update History for Trail ---
+                    p.history.push({ x: p.x, y: p.y });
+                    if (p.history.length > PARAMS.trailLength) {
+                        p.history.shift(); // Keep history length fixed
+                    }
+
+                    // --- Particle Fading & Removal ---
+                    const distToCenterSq = (p.x - this.x) * (p.x - this.x) + (p.y - this.y) * (p.y - this.y);
+                    const distToCenter = Math.sqrt(distToCenterSq);
+                    let shouldFade = false;
+
+                    // Conditions for particle to start fading out
+                    if (p.age > p.maxAge ||                                          // Exceeded lifespan
+                       (distToCenter < this.eyeRadius * PARAMS.INNER_REMOVAL_RADIUS_FACTOR && p.age > PARAMS.PARTICLE_BASE_LIFESPAN * 0.2) || // Got too close to eye center (after initial period)
+                       distToCenterSq > (this.currentRadius * 2.2) ** 2 ||           // Moved too far from storm center
+                       this.state === 'dissipating')                                  // Storm is dissipating
+                    {
+                        shouldFade = true;
+                    }
+
+                    if (shouldFade) {
+                        // Decrease alpha gradually
+                        p.alpha *= (0.93 - (deltaTime * 0.05)); // Fade rate slightly dependent on deltaTime
+                        if (p.alpha < 0.02) {
+                            // Remove particle if alpha is very low
+                            this.particles.splice(i, 1);
+                            currentTotalParticles--; // Decrement global counter
+                        }
+                    } else {
+                        // If not fading, potentially increase alpha back towards base value
+                        if (p.alpha < PARAMS.particleBaseAlpha * 0.8) p.alpha += 0.05 * deltaTime;
+                        p.alpha = Math.min(p.alpha, PARAMS.particleBaseAlpha); // Cap alpha at base value
+                    }
+                }
+            }
+
+            // Draws all particles of this storm onto the canvas context
+            draw(ctx) {
+                // Store original shadow settings to restore later
+                const originalShadowBlur = ctx.shadowBlur;
+                const originalShadowColor = ctx.shadowColor;
+
+                this.particles.forEach(p => {
+                    // --- Calculate Dynamic Properties based on Speed ---
+                    const speed = Math.sqrt(p.vx * p.vx + p.vy * p.vy);
+                    const speedRatio = Math.min(1, speed / PARAMS.MAX_SPEED); // Speed ratio (0 to 1)
+                    // Increase alpha and radius slightly based on speed
+                    const dynamicAlpha = p.alpha * (1 + speedRatio * PARAMS.alphaSpeedFactor);
+                    const finalAlpha = Math.min(1, dynamicAlpha); // Clamp alpha
+                    const dynamicRadius = PARAMS.PARTICLE_RADIUS * (1 + speedRatio * PARAMS.sizeSpeedFactor);
+
+                    // --- Determine Particle Color and Glow ---
+                    let particleRgb;
+                    let particleGlowBlur;
+                    let particleColorStyle;
+
+                    if (p.isSparkle) {
+                        // Sparkle particles use a fixed bright color and larger glow
+                        particleRgb = PALETTE_RGB.sparklePink;
+                        particleColorStyle = `rgb(${particleRgb.r},${particleRgb.g},${particleRgb.b})`;
+                        particleGlowBlur = PARAMS.SPARKLE_GLOW_BLUR;
+                    } else {
+                        // Regular particles interpolate color based on speed (towards white-hot)
+                        particleRgb = lerpColor(this.baseColorRgb, PALETTE_RGB.whiteHot, speedRatio * PARAMS.SPEED_COLOR_FACTOR);
+                        particleColorStyle = `rgb(${particleRgb.r},${particleRgb.g},${particleRgb.b})`;
+                        particleGlowBlur = PARAMS.PARTICLE_GLOW_BLUR;
+                    }
+
+                    // --- Draw Trail ---
+                    if (p.history.length > 1) {
+                        ctx.shadowBlur = 0; // No shadow for the trail line itself
+                        ctx.beginPath();
+                        ctx.moveTo(p.history[0].x, p.history[0].y);
+                        for (let i = 1; i < p.history.length; i++) {
+                            ctx.lineTo(p.history[i].x, p.history[i].y);
+                        }
+                        // Trail alpha fades with particle alpha and trail length
+                        const baseTrailAlpha = finalAlpha * PARAMS.trailAlphaFactor;
+                        const trailAlpha = baseTrailAlpha * (p.history.length / PARAMS.trailLength); // Shorter trails are fainter
+                        ctx.strokeStyle = `rgba(${particleRgb.r}, ${particleRgb.g}, ${particleRgb.b}, ${trailAlpha * 0.6})`; // Make trail slightly fainter than particle
+                        ctx.lineWidth = dynamicRadius * 0.8; // Trail width based on particle size
+                        ctx.lineCap = "round"; // Rounded ends for smoother look
+                        ctx.stroke();
+                    }
+
+                    // --- Draw Particle (Circle) ---
+                    // Apply glow effect using canvas shadow
+                    ctx.shadowBlur = particleGlowBlur;
+                    ctx.shadowColor = particleColorStyle; // Glow color matches particle color
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, dynamicRadius, 0, Math.PI * 2); // Draw circle
+                    ctx.fillStyle = `rgba(${particleRgb.r}, ${particleRgb.g}, ${particleRgb.b}, ${finalAlpha})`; // Fill with calculated color and alpha
+                    ctx.fill();
+                });
+
+                // Restore original shadow settings
+                ctx.shadowBlur = originalShadowBlur;
+                ctx.shadowColor = originalShadowColor;
+            }
+        }
+
+        // --- Starfield Functions ---
+        // Initializes the star array with random positions, sizes, and alphas
+        function initStars() {
+            stars = []; // Clear existing stars
+            for (let i = 0; i < STARFIELD_PARAMS.NUM_STARS; i++) {
+                const radius = STARFIELD_PARAMS.MIN_RADIUS + Math.random() * STARFIELD_PARAMS.MAX_RADIUS_VAR;
+                stars.push({
+                    x: Math.random() * canvas.width, // Random horizontal position
+                    y: Math.random() * canvas.height, // Random vertical position
+                    radius: radius,
+                    alpha: STARFIELD_PARAMS.MIN_ALPHA + Math.random() * STARFIELD_PARAMS.MAX_ALPHA_VAR, // Random opacity
+                    // Speed depends on size (larger stars move slightly faster for parallax)
+                    speed: STARFIELD_PARAMS.BASE_SPEED * (1 + radius * STARFIELD_PARAMS.SPEED_RADIUS_FACTOR)
+                });
+            }
+        }
+        // Draws the stars and updates their positions for the parallax effect
+        function drawStars(deltaTime) {
+            const starRgb = PALETTE_RGB.starColor || {r:255, g:255, b:255}; // Default to white if not set
+            ctx.save(); // Save context state
+            stars.forEach(star => {
+                // Move star horizontally based on its speed
+                star.x -= star.speed * deltaTime;
+                // Wrap star around to the right edge if it goes off the left edge
+                if (star.x < -star.radius) {
+                    star.x = canvas.width + star.radius;
+                }
+                // Draw the star as a small circle
+                ctx.beginPath();
+                ctx.arc(star.x, star.y, star.radius, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(${starRgb.r}, ${starRgb.g}, ${starRgb.b}, ${star.alpha})`;
+                ctx.fill();
+            });
+            ctx.restore(); // Restore context state
+        }
+
+        // --- Main Simulation Loop ---
+        let lastTime = 0; // Timestamp of the previous frame
+        function animate(timestamp) {
+            // Calculate time elapsed since the last frame
+            const elapsed = timestamp - lastTime;
+            // Calculate deltaTime (time multiplier for physics), ensuring it's positive and capped
+            // Use 1 as default if elapsed is invalid, normalize to 60fps (16.667ms)
+            const deltaTime = isNaN(elapsed) || elapsed <= 0 ? 1 : Math.min(3.0, elapsed / 16.667);
+            lastTime = timestamp;
+
+            // Only update simulation if time has actually passed
+            if (deltaTime > 0) {
+                // Advance simulation time (affected by TIME_SCALE control)
+                currentTime += deltaTime * PARAMS.TIME_SCALE; // Kept currentTime for potential future use, but not displayed
+
+                // --- Draw Starfield (Background) ---
+                drawStars(deltaTime);
+
+                // --- Draw Background Fade Overlay ---
+                // Creates the trailing effect by drawing a semi-transparent overlay each frame
+                ctx.fillStyle = 'rgba(2, 6, 23, 0.22)'; // Darker slate background for better contrast
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                // --- Apply Mouse Interaction ---
+                if (PARAMS.MOUSE_ENABLED && isMouseOverCanvas) {
+                    activeStorms.forEach(storm => {
+                        // Quick check: is mouse within potential influence radius of the storm center?
+                        const stormDx = storm.x - mouseX;
+                        const stormDy = storm.y - mouseY;
+                        const stormDistSq = stormDx * stormDx + stormDy * stormDy;
+
+                        if (stormDistSq < PARAMS.MOUSE_STORM_INFLUENCE_RADIUS_SQ && storm.particles.length > 0) {
+                            // If mouse is close enough to the storm, check a subset of its particles
+                            const numToCheck = Math.min(PARAMS.MOUSE_PARTICLE_CHECK_COUNT, storm.particles.length);
+                            for (let i = 0; i < numToCheck; i++) {
+                                // Pick a random particle index for efficiency
+                                const pIndex = Math.floor(Math.random() * storm.particles.length);
+                                const p = storm.particles[pIndex];
+                                if (!p) continue; // Skip if particle was removed concurrently
+
+                                // Calculate distance from mouse to this particle
+                                const particleDx = p.x - mouseX;
+                                const particleDy = p.y - mouseY;
+                                const particleDistSq = particleDx * particleDx + particleDy * particleDy;
+
+                                // If particle is within the interaction radius
+                                if (particleDistSq < PARAMS.MOUSE_PARTICLE_INTERACTION_RADIUS_SQ && particleDistSq > 1) { // Avoid extreme force at exact center
+                                    const dist = Math.sqrt(particleDistSq);
+                                    const normX = particleDx / dist; // Normalized direction vector from mouse to particle
+                                    const normY = particleDy / dist;
+
+                                    // Calculate force magnitude (inversely proportional to distance squared, like gravity/electrostatics)
+                                    let forceMag = PARAMS.MOUSE_FORCE_STRENGTH / (particleDistSq + 10); // Add small constant to avoid huge forces very close
+
+                                    // Reverse force direction if attracting
+                                    if (PARAMS.MOUSE_FORCE_TYPE === 'attract') {
+                                        forceMag *= -1;
+                                    }
+
+                                    // Apply force to particle velocity
+                                    p.vx += normX * forceMag * deltaTime;
+                                    p.vy += normY * forceMag * deltaTime;
+                                }
+                            }
+                        }
+                    });
+                }
+                // --- End Mouse Interaction ---
+
+
+                // --- Spawn New Storms ---
+                // Randomly attempt to spawn a new storm if below the maximum limit
+                if (activeStorms.length < PARAMS.MAX_ACTIVE_STORMS && Math.random() < PARAMS.STORM_SPAWN_PROBABILITY) {
+                    activeStorms.push(new Storm());
+                }
+
+                // --- Update & Draw Storms ---
+                // Iterate backwards to allow safe removal
+                for (let i = activeStorms.length - 1; i >= 0; i--) {
+                    const storm = activeStorms[i];
+                    const keepStorm = storm.update(deltaTime); // Update storm state
+                    if (keepStorm) {
+                        storm.updateParticles(deltaTime); // Update particles if storm is kept
+                        storm.draw(ctx); // Draw the storm and its particles
+                    } else {
+                        // If update signaled removal, decrement particle count and remove storm
+                        currentTotalParticles -= storm.particles.length;
+                        currentTotalParticles = Math.max(0, currentTotalParticles); // Ensure count doesn't go below zero
+                        activeStorms.splice(i, 1);
+                    }
+                }
+
+                // --- Handle Storm Mergers ---
+                if (PARAMS.STORM_MERGE_ENABLED && activeStorms.length > 1) {
+                    let mergedIndices = new Set();
+                    for (let i = 0; i < activeStorms.length; i++) {
+                        for (let j = i + 1; j < activeStorms.length; j++) {
+                            if (mergedIndices.has(i) || mergedIndices.has(j)) continue;
+
+                            const stormA = activeStorms[i];
+                            const stormB = activeStorms[j];
+
+                            const distSq = (stormA.x - stormB.x)**2 + (stormA.y - stormB.y)**2;
+                            const mergeDist = (stormA.currentRadius + stormB.currentRadius) * PARAMS.STORM_MERGE_DISTANCE_FACTOR;
+
+                            if (distSq < mergeDist * mergeDist) {
+                                // Determine which storm survives (the stronger one)
+                                const [survivor, absorbed, absorbedIndex] = stormA.currentStrength >= stormB.currentStrength ? [stormA, stormB, j] : [stormB, stormA, i];
+
+                                // Transfer particles
+                                survivor.particles.push(...absorbed.particles);
+
+                                // Combine properties
+                                survivor.maxStrength += absorbed.maxStrength * 0.5;
+                                survivor.maxLifespan += absorbed.maxLifespan * 0.25;
+
+                                // Mark the absorbed storm for removal
+                                mergedIndices.add(absorbedIndex);
+                            }
+                        }
+                    }
+
+                    // Remove merged storms
+                    if (mergedIndices.size > 0) {
+                        activeStorms = activeStorms.filter((_, index) => !mergedIndices.has(index));
+                    }
+                }
+
+            }
+            // Request the next animation frame
+            requestAnimationFrame(animate);
+        }
+
+        // --- Event Listeners ---
+        // Handle click on the main action button
+        actionButton.addEventListener('click', () => {
+            console.log('Initiating Subduction...');
+            // Clear existing storms immediately
+            activeStorms.forEach(storm => {
+                currentTotalParticles -= storm.particles.length; // Decrement count for removed particles
+            });
+            currentTotalParticles = Math.max(0, currentTotalParticles); // Ensure non-negative
+            activeStorms = []; // Empty the array
+            console.log('Storms cleared. Spawning mother storm...');
+
+            // Spawn a single, larger 'mother' storm if particle cap allows
+            if (currentTotalParticles < PARAMS.MAX_TOTAL_PARTICLES) {
+                const motherStorm = new Storm();
+                // Make the mother storm stronger, larger, and longer-lasting
+                motherStorm.maxStrength = (PARAMS.MIN_MAX_STRENGTH + PARAMS.MAX_STRENGTH_VARIATION) * PARAMS.MOTHER_STRENGTH_MULT;
+                motherStorm.maxRadius = (PARAMS.MIN_MAX_RADIUS + PARAMS.MAX_RADIUS_VARIATION) * PARAMS.MOTHER_RADIUS_MULT;
+                motherStorm.maxLifespan = (PARAMS.MIN_LIFESPAN + PARAMS.MAX_LIFESPAN_VARIATION) * PARAMS.MOTHER_LIFESPAN_MULT;
+                activeStorms.push(motherStorm);
+                console.log('Mother storm spawned:', motherStorm);
+            } else {
+                console.log('Particle cap reached, cannot spawn mother storm.');
+            }
+        });
+
+        // Spawn storm on canvas click
+        canvas.addEventListener('click', (event) => {
+            if (activeStorms.length < PARAMS.MAX_ACTIVE_STORMS) {
+                const rect = canvas.getBoundingClientRect();
+                const clickX = event.clientX - rect.left;
+                const clickY = event.clientY - rect.top;
+                activeStorms.push(new Storm(clickX, clickY));
+            }
+        });
+
+        // Track mouse movement over the canvas
+        canvas.addEventListener('mousemove', (event) => {
+             const rect = canvas.getBoundingClientRect(); // Get canvas position and size
+             // Calculate mouse coordinates relative to the canvas
+             mouseX = event.clientX - rect.left;
+             mouseY = event.clientY - rect.top;
+             isMouseOverCanvas = true; // Set flag
+        });
+        // Reset flag when mouse leaves the canvas
+        canvas.addEventListener('mouseleave', () => {
+            isMouseOverCanvas = false;
+        });
+
+        // Toggle mouse force type with 'f' key
+        window.addEventListener('keydown', (event) => {
+            if (event.key === 'f' || event.key === 'F') {
+                PARAMS.MOUSE_FORCE_TYPE = PARAMS.MOUSE_FORCE_TYPE === 'repel' ? 'attract' : 'repel';
+                console.log(`Mouse force set to: ${PARAMS.MOUSE_FORCE_TYPE}`);
+            }
+        });
+
+        // Adjust mouse force strength and radius with mouse wheel
+        canvas.addEventListener('wheel', (event) => {
+            event.preventDefault(); // Prevent page scrolling
+            const scrollDelta = Math.sign(event.deltaY);
+
+            if (scrollDelta > 0) { // Scrolling down -> decrease
+                PARAMS.MOUSE_FORCE_STRENGTH = Math.max(10, PARAMS.MOUSE_FORCE_STRENGTH - 10);
+                PARAMS.MOUSE_PARTICLE_INTERACTION_RADIUS = Math.max(30, PARAMS.MOUSE_PARTICLE_INTERACTION_RADIUS - 5);
+            } else { // Scrolling up -> increase
+                PARAMS.MOUSE_FORCE_STRENGTH = Math.min(300, PARAMS.MOUSE_FORCE_STRENGTH + 10);
+                PARAMS.MOUSE_PARTICLE_INTERACTION_RADIUS = Math.min(250, PARAMS.MOUSE_PARTICLE_INTERACTION_RADIUS + 5);
+            }
+            // Recalculate the squared radius for performance
+            PARAMS.MOUSE_PARTICLE_INTERACTION_RADIUS_SQ = PARAMS.MOUSE_PARTICLE_INTERACTION_RADIUS ** 2;
+            console.log(`Mouse Radius: ${PARAMS.MOUSE_PARTICLE_INTERACTION_RADIUS}, Strength: ${PARAMS.MOUSE_FORCE_STRENGTH}`);
+        });
+
+
+        // --- Resize Canvas ---
+        // Adjusts canvas size and related parameters when the window is resized
+        function resizeCanvas() {
+            // Set canvas dimensions to match window inner dimensions
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+
+            // --- Update Parameters Dependent on Canvas Size ---
+            // Set the threshold for northward turning to be the vertical center of the canvas
+            PARAMS.NORTHWARD_TURN_Y_THRESHOLD = canvas.height * 0.5;
+            // Define the 'land' area (e.g., top-right quadrant) relative to canvas size
+            PARAMS.LAND_RECT = {
+                x: canvas.width * 0.75, y: 0,
+                width: canvas.width * 0.25, height: canvas.height * 0.6
+            };
+            // Define the storm formation zone relative to canvas size
+            PARAMS.FORMATION_Y_MIN = canvas.height * 0.2;
+            PARAMS.FORMATION_Y_MAX = canvas.height * 0.8;
+            PARAMS.FORMATION_X_MIN = canvas.width * 0.2;
+            PARAMS.FORMATION_X_MAX = canvas.width * 0.8;
+
+            // Reinitialize the starfield for the new canvas size
+            initStars();
+        }
+
+        // --- UI Controls Setup ---
+        // Connects HTML range sliders to simulation parameters
+        function setupControls() {
+            // Get references to slider elements
+            const emergenceRateSlider = document.getElementById('emergenceRate');
+            const temporalFlowSlider = document.getElementById('temporalFlow');
+            const surfaceInfluenceSlider = document.getElementById('surfaceInfluence');
+
+            // Define the output ranges for each parameter
+            const emergenceRateRange = { outMin: 0.001, outMax: 0.05 }; // STORM_SPAWN_PROBABILITY
+            const temporalFlowRange = { outMin: 0.002, outMax: 0.03 };   // TIME_SCALE
+            const surfaceInfluenceRange = { outMin: 0, outMax: 250 };    // MOUSE_FORCE_STRENGTH
+
+            // --- Initialize Slider Positions ---
+            // Set initial slider position based on current parameter value, mapped back to 0-100 range
+            emergenceRateSlider.value = mapRange(PARAMS.STORM_SPAWN_PROBABILITY, emergenceRateRange.outMin, emergenceRateRange.outMax, 0, 100);
+            temporalFlowSlider.value = mapRange(PARAMS.TIME_SCALE, temporalFlowRange.outMin, temporalFlowRange.outMax, 0, 100);
+            surfaceInfluenceSlider.value = mapRange(PARAMS.MOUSE_FORCE_STRENGTH, surfaceInfluenceRange.outMin, surfaceInfluenceRange.outMax, 0, 100);
+
+            // --- Add Event Listeners for Sliders ---
+            // Update parameter when 'Emergence Rate' slider changes
+            emergenceRateSlider.addEventListener('input', (e) => {
+                const val = parseFloat(e.target.value); // Get slider value (0-100)
+                // Map slider value (0-100) to the parameter's actual range
+                PARAMS.STORM_SPAWN_PROBABILITY = mapRange(val, 0, 100, emergenceRateRange.outMin, emergenceRateRange.outMax);
+            });
+
+            // Update parameter when 'Temporal Flow' slider changes
+            temporalFlowSlider.addEventListener('input', (e) => {
+                const val = parseFloat(e.target.value);
+                PARAMS.TIME_SCALE = mapRange(val, 0, 100, temporalFlowRange.outMin, temporalFlowRange.outMax);
+            });
+
+            // Update parameter when 'Surface Influence' (Mouse Strength) slider changes
+            surfaceInfluenceSlider.addEventListener('input', (e) => {
+                const val = parseFloat(e.target.value);
+                PARAMS.MOUSE_FORCE_STRENGTH = mapRange(val, 0, 100, surfaceInfluenceRange.outMin, surfaceInfluenceRange.outMax);
+            });
+        }
+
+
+        // --- Initial Setup & Start ---
+        window.addEventListener('resize', resizeCanvas); // Add resize listener
+        resizeCanvas(); // Initial resize to set up layout
+        setupControls(); // Initialize UI controls and link them to PARAMS
+        requestAnimationFrame(animate); // Start the animation loop
+
+    </script>
+</body>
+</html>
+
