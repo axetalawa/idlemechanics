@@ -1,29 +1,33 @@
-function shuffle(array) {
-  for (let i = array.length - 1; i > 0; i--) {
+export function shuffle(array) {
+  const arr = [...array];
+  for (let i = arr.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
-    [array[i], array[j]] = [array[j], array[i]];
+    [arr[i], arr[j]] = [arr[j], arr[i]];
   }
-  return array;
+  return arr;
 }
 
-function startSlideshow(iframe, works) {
-  if (!works.length) return;
-  const shuffled = shuffle(works);
-  let index = 0;
+export function startSlideshow(iframe, works, defaultDuration = 60000) {
+  if (!iframe || !works?.length) return;
 
-  const loadNext = () => {
+  const shuffled = shuffle(works);
+  let i = 0;
+  const fadeDuration = 1000;
+
+  const next = () => {
+    const current = shuffled[i];
     iframe.classList.add('fade-out');
+
     setTimeout(() => {
-      iframe.src = shuffled[index].path;
+      iframe.src = `/${current.path}`;
       iframe.classList.remove('fade-out');
       iframe.classList.add('fade-in');
-    }, 1000);
-    index = (index + 1) % shuffled.length;
+    }, fadeDuration);
+
+    const hold = current.duration || defaultDuration;
+    i = (i + 1) % shuffled.length;
+    setTimeout(next, hold);
   };
 
-  iframe.addEventListener('load', () => {
-    setTimeout(loadNext, 60000 + Math.random() * 15000); // 60-75s
-  });
-
-  loadNext();
+  next();
 }

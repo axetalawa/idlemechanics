@@ -1,0 +1,994 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>The Three Neon Ghost Owls</title>
+    <meta name="description" content="An animated display of six mysterious neon ghost owls, settling into various choreographies with refined particle effects." />
+    <!-- Google Fonts - Only include fonts relevant to this page if any text is used -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400&display=swap" rel="stylesheet">
+
+    <style>
+        /* CSS Variables - ensure only relevant ones are here */
+        :root {
+            --dark-bg: #0D0D0D;
+            --light-text: #BBBBBB;
+            --primary-glyph-color: #FF1E8E; /* Pink */
+            --solar-yellow: #FFEF00; /* Yellow */
+            --deep-purple: #2c015a; /* Deep Purple, formerly Electric Lime */
+            --electric-cyan: #00FFF7; /* Cyan - still used for a subtle fixed detail if needed */
+        }
+
+        /* Base Body Styles */
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: var(--dark-bg);
+            color: var(--light-text);
+            font-family: 'Inter', sans-serif;
+            overflow: hidden; /* Prevent scrollbars during view shift */
+            cursor: crosshair; /* Default cursor set to crosshair */
+        }
+
+        /* Main Content Wrapper (now only for owl section) */
+        #main-content-wrapper {
+            width: 100%;
+            min-height: 100vh; /* Only owl section height now */
+        }
+
+        /* --- Three Neon Ghost Owls Section Styles --- */
+        #owls-section {
+            width: 100%;
+            height: 100vh; /* Fixed height for the owl scene */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 50px 0;
+            box-sizing: border-box;
+            overflow: hidden;
+            background-color: var(--dark-bg);
+            position: relative;
+        }
+
+        #owls-section svg {
+            display: block;
+            width: 100%; /* Ensure it fills the width of its parent */
+            height: auto; /* Maintain aspect ratio */
+            overflow: visible;
+            position: absolute; /* Position relative to its section */
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%); /* Center the SVG */
+            z-index: 1; /* Ensure owls are above the background gradient */
+        }
+        
+        /* Transition effects for owl elements on hover */
+        #owls-section use {
+            /* Transitions for transforms and filters are still desired on hover */
+            transition: transform 0.5s ease-out, /* Slightly faster transition on hover for responsiveness */
+                        filter 0.4s ease, 
+                        opacity 0.4s ease;
+            cursor: pointer; /* Indicate interactivity */
+        }
+
+        /* Hover effects for owls */
+        #owls-section svg:hover use:not(:hover) { 
+            opacity: 0.3; 
+            transform: scale(0.95); 
+        }
+        #owls-section svg:hover use:hover { 
+            transform: scale(1.05); /* Maintain scale for hover effect */
+            /* Enhanced glow using multiple drop shadows */
+            filter: drop-shadow(0 0 30px var(--solar-yellow)) drop-shadow(0 0 10px rgba(255, 239, 0, 0.5));
+            /* Unique subtle animation on hover */
+            animation: hoverSurge 0.5s ease-out forwards; 
+        }
+
+        /* Keyframe for hover surge animation */
+        @keyframes hoverSurge {
+            0% { transform: scale(1.05) rotate(0deg); }
+            50% { transform: scale(1.06) rotate(0.5deg); } /* Slight increase and rotation */
+            100% { transform: scale(1.05) rotate(0deg); }
+        }
+
+        /* General animation properties for owl parts */
+        .owl-unit-container {
+            animation: unitPulseOwl 8s ease-in-out infinite, bobbing 4s ease-in-out infinite alternate;
+            transform-origin: center; 
+        }
+        .face-group { 
+            animation: headTurn 6s ease-in-out infinite alternate; /* Head turn animation */
+            transform-origin: center; 
+        }
+
+        /* Staggered animation delays for owls (adjusted for 6 owls) */
+        #owl-1 .owl-unit-container, #owl-1 .face-group { animation-delay: -0s; }
+        #owl-2 .owl-unit-container, #owl-2 .face-group { animation-delay: -1s; }
+        #owl-3 .owl-unit-container, #owl-3 .face-group { animation-delay: -2s; }
+        #owl-4 .owl-unit-container, #owl-4 .face-group { animation-delay: -3s; }
+        #owl-5 .owl-unit-container, #owl-5 .face-group { animation-delay: -4s; }
+        #owl-6 .owl-unit-container, #owl-6 .face-group { animation-delay: -5s; }
+
+
+        /* New classes for staggered color animations across owl parts */
+        .owl-head-part { 
+            animation: colorPulseWings 8s ease-in-out infinite normal; /* Now matches wing color animation */
+        }
+        .owl-wing-part { 
+            animation: colorPulseWings 8s ease-in-out infinite normal; 
+        }
+        .owl-torso-part { 
+            animation: colorPulseTorso 8s ease-in-out infinite normal; 
+        }
+
+        .eye-glow-container { animation: eyePulse 2s ease-in-out infinite alternate; } /* Eye pulse animation only for opacity now */
+        .inner-pulse { animation: innerPulseOpacityOwl 6s ease-out infinite alternate; }
+        .pupil { animation: dilateOwl 4s ease-in-out infinite alternate; }
+        .mote { 
+            animation: driftOwl 10s ease-in-out infinite alternate; 
+            fill: var(--light-text); 
+            opacity: 0; /* Start hidden for a smoother fade-in with the animation */
+        }
+        
+        /* Styling for the rotating outlines - NOW INCLUDES a base stroke color */
+        .rotating-outline {
+            fill: none;
+            stroke: var(--light-text); /* Added a base stroke color for visibility */
+            stroke-width: 1.2;
+            stroke-dasharray: 3 3;
+        }
+
+        /* Keyframe Animations for Owls */
+        /* Unit pulse animation for owl containers */
+        @keyframes unitPulseOwl { 
+            0% { opacity: 0; transform: scale(0.3); } 
+            30% { opacity: 0.85; transform: scale(1); } 
+            45% { opacity: 0.85; transform: scale(1); } 
+            80% { opacity: 0; transform: scale(0.3); } 
+            100% { opacity: 0; transform: scale(0.3); } 
+        }
+        
+        /* Gentle Bobbing Animation */
+        @keyframes bobbing {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); } /* Subtle vertical movement */
+        }
+
+        /* Minimal Head Turn Animation */
+        @keyframes headTurn {
+            0%, 100% { transform: rotate(0deg); }
+            25% { transform: rotate(1deg); } /* Slight turn right */
+            75% { transform: rotate(-1deg); } /* Slight turn left */
+        }
+
+        /* Eye Pulse/Blink Animation */
+        @keyframes eyePulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.8; } /* Subtle dimming */
+        }
+
+        /* Staggered color pulse for head */
+        /* REMOVED: @keyframes colorPulseHead, as owl-head-part now uses colorPulseWings */
+        /* Staggered color pulse for wings */
+        @keyframes colorPulseWings { 
+            0%, 100% { filter: url(#true-glow-deep-purple); } /* Changed to deep purple */
+            33.33% { filter: url(#true-glow-yellow); } 
+            66.66% { filter: url(#true-glow-pink); } 
+        }
+        /* Staggered color pulse for torso */
+        @keyframes colorPulseTorso { 
+            0%, 100% { filter: url(#true-glow-yellow); } 
+            33.33% { filter: url(#true-glow-pink); } 
+            66.66% { filter: url(#true-glow-deep-purple); } /* Changed to deep purple */
+        }
+        
+        /* Border color pulse for rotating border, now aligned with color scheme */
+        .rotating-border { 
+            animation: borderColorPulseOwl 8s ease-in-out infinite normal; 
+        }
+        @keyframes borderColorPulseOwl { 
+            0%, 100% { stroke: var(--primary-glyph-color); } /* Pink */
+            33.33% { stroke: var(--deep-purple); } /* Changed to deep purple */
+            66.66% { stroke: var(--solar-yellow); } /* Yellow */
+        }
+
+        /* Inner pulse opacity animation */
+        @keyframes innerPulseOpacityOwl { 0%, 100% { opacity: 0; } 50% { opacity: 0.6; } }
+        /* Eye glow animation, changing glow colors */
+        /* REMOVED: @keyframes eyeGlowOwl, as individual eye circles handle their color */
+        /* Pupil dilation animation */
+        @keyframes dilateOwl { 0%, 100% { r: 3; } 50% { r: 7; } }
+        /* Mote drift animation - now drifts upwards and fades out with blur */
+        @keyframes driftOwl { 
+            0% { transform: translate(0, 0) scale(0.5); opacity: 0.3; filter: blur(0px); } /* Start with no blur */
+            50% { transform: translate(0, -50px) scale(1.2); opacity: 0.8; filter: blur(0px); } /* Peak in the middle, still sharp */
+            100% { transform: translate(0, -100px) scale(1.8); opacity: 0; filter: blur(5px); } /* Fade out, larger, and blurred */
+        }
+
+        /* Styles for the new Pattern Selector UI (now only visual) */
+        #pattern-selector-ui {
+            transform-origin: center;
+        }
+
+        .mini-owl-button {
+            width: 50px; /* Small size for mini owls */
+            height: 55px; /* Maintain aspect ratio */
+            opacity: 0.4; /* Subtle when not active */
+            transition: opacity 0.3s ease, transform 0.3s ease, filter 0.3s ease;
+            filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.2)); /* Subtle white glow */
+            pointer-events: auto; /* Enable clicks on mini owls */
+            cursor: pointer;
+            /* Position relative to the group, these values will be set by JS */
+        }
+
+        .mini-owl-button:hover {
+            opacity: 0.7; /* More visible on hover */
+            transform: scale(1.1); /* Slight scale up on hover */
+            filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.4)); /* Stronger white glow */
+        }
+
+        .mini-owl-button.active {
+            opacity: 1; /* Fully visible when active */
+            transform: scale(1.2); /* More pronounced when active */
+            filter: drop-shadow(0 0 15px var(--solar-yellow)) drop-shadow(0 0 5px var(--primary-glyph-color)); /* Bright active glow */
+        }
+
+        /* Media queries for responsiveness */
+        @media (max-width: 768px) {
+            #owls-section { padding: 30px 0; }
+            #owls-section svg { max-width: 90%; }
+            .mini-owl-button { width: 35px; height: 38.5px; } /* Smaller on mobile */
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Main Content Wrapper (only for owl section) -->
+    <div id="main-content-wrapper">
+
+        <!-- The Three Neon Ghost Owls Section -->
+        <section id="owls-section">
+            <!-- SVG container for owls and animations -->
+            <svg viewBox="0 0 800 600" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                    <!-- Filters for various glow effects (primary owl colors) -->
+                    <filter id="true-glow-pink" x="-150%" y="-150%" width="400%" height="400%" filterUnits="userSpaceOnUse">
+                        <feDropShadow dx="0" dy="0" stdDeviation="8" flood-color="var(--primary-glyph-color)" flood-opacity="0.5" result="outerGlow"/>
+                        <feGaussianBlur in="SourceAlpha" stdDeviation="6" result="blurredAlpha"/>
+                        <feFlood flood-color="var(--primary-glyph-color)" flood-opacity="0.7" result="glowColor"/>
+                        <feComposite in="glowColor" in2="blurredAlpha" operator="in" result="softGlow"/>
+                        <feComposite in="softGlow" in2="SourceGraphic" operator="atop" result="innerGlow"/>
+                        <feMerge>
+                            <feMergeNode in="outerGlow"/>
+                            <feMergeNode in="SourceGraphic"/>
+                            <feMergeNode in="innerGlow"/>
+                        </feMerge>
+                    </filter>
+                    <!-- Changed from true-glow-lime to true-glow-deep-purple -->
+                    <filter id="true-glow-deep-purple" x="-150%" y="-150%" width="400%" height="400%" filterUnits="userSpaceOnUse">
+                        <feDropShadow dx="0" dy="0" stdDeviation="10" flood-color="var(--deep-purple)" flood-opacity="0.6" result="outerGlow"/>
+                        <feGaussianBlur in="SourceAlpha" stdDeviation="7" result="blurredAlpha"/>
+                        <feFlood flood-color="var(--deep-purple)" flood-opacity="0.8" result="glowColor"/>
+                        <feComposite in="glowColor" in2="blurredAlpha" operator="in" result="softGlow"/>
+                        <feComposite in="softGlow" in2="SourceGraphic" operator="atop" result="innerGlow"/>
+                        <feMerge>
+                            <feMergeNode in="outerGlow"/>
+                            <feMergeNode in="SourceGraphic"/>
+                            <feMergeNode in="innerGlow"/>
+                        </feMerge>
+                    </filter>
+                    <filter id="true-glow-yellow" x="-150%" y="-150%" width="400%" height="400%" filterUnits="userSpaceOnUse">
+                        <feDropShadow dx="0" dy="0" stdDeviation="9" flood-color="var(--solar-yellow)" flood-opacity="0.5" result="outerGlow"/>
+                        <feGaussianBlur in="SourceAlpha" stdDeviation="6" result="blurredAlpha"/>
+                        <feFlood flood-color="var(--solar-yellow)" flood-opacity="0.7" result="glowColor"/>
+                        <feComposite in="glowColor" in2="blurredAlpha" operator="in" result="softGlow"/>
+                        <feComposite in="softGlow" in2="SourceGraphic" operator="atop" result="innerGlow"/><feMerge>
+                            <feMergeNode in="outerGlow"/>
+                            <feMergeNode in="SourceGraphic"/>
+                            <feMergeNode in="innerGlow"/>
+                        </feMerge>
+                    </filter>
+
+                    <!-- Filters for eye glows -->
+                    <filter id="eye-glow-subtle" x="-50%" y="-50%" width="200%" height="200%">
+                        <feDropShadow dx="0" dy="0" stdDeviation="2.5" flood-color="var(--light-text)" flood-opacity="0.8"/>
+                    </filter>
+                    <!-- Changed from eye-glow-bright-lime to eye-glow-bright-deep-purple -->
+                    <filter id="eye-glow-bright-deep-purple" x="-50%" y="-50%" width="200%" height="200%">
+                        <feDropShadow dx="0" dy="0" stdDeviation="5" flood-color="var(--deep-purple)" flood-opacity="1"/>
+                    </filter>
+                    <filter id="eye-glow-bright-yellow" x="-50%" y="-50%" width="200%" height="200%">
+                        <feDropShadow dx="0" dy="0" stdDeviation="5" flood-color="var(--solar-yellow)" flood-opacity="1"/>
+                    </filter>
+                    
+                    <!-- Filter for subtle mote blurring -->
+                    <filter id="mote-blur-filter" x="-50%" y="-50%" width="200%" height="200%">
+                        <feGaussianBlur in="SourceGraphic" stdDeviation="2.5"/>
+                    </filter>
+
+                    <!-- Radial gradient for inner pulse animation -->
+                    <radialGradient id="pulse-gradient">
+                        <stop offset="0%" stop-color="var(--deep-purple)" /> <!-- Changed to deep purple -->
+                        <stop offset="70%" stop-color="rgba(44, 1, 90, 0)" /> <!-- Changed to deep purple -->
+                    </radialGradient>
+
+                    <!-- SVG Symbol for a single owl, reused for all six -->
+                    <symbol id="owl" viewBox="-70 -125 140 320">
+                        <g class="owl-unit-container">
+                            <!-- Existing Rotating border for the owl's head -->
+                            <circle class="rotating-border" cx="0" cy="-50" r="62" fill="none" stroke-width="1.5" stroke-dasharray="4 4">
+                                <animateTransform attributeName="transform" type="rotate" from="0 0 -50" to="360 0 -50" dur="10s" repeatCount="indefinite"/>
+                            </circle>
+                            <!-- Inner pulse circle with gradient -->
+                            <circle class="inner-pulse" cx="0" cy="-50" r="58" fill="url(#pulse-gradient)">
+                                <animateTransform attributeName="transform" type="scale" values="0.7;1.2;0.7" keyTimes="0;0.5;1" dur="5s" repeatCount="indefinite" additive="sum"/>
+                            </circle>
+                            <!-- Owl body parts (ellipses and circles) with new staggered color classes -->
+                            <g>
+                                <!-- Torso bottom -->
+                                <ellipse class="owl-torso-part" cx="0" cy="130" rx="35" ry="55" fill="var(--dark-bg)">
+                                    <animate attributeName="rx" values="35;36;35;34;35" keyTimes="0;0.25;0.5;0.75;1" dur="8s" repeatCount="indefinite"/>
+                                    <animate attributeName="ry" values="55;56;55;54;55" keyTimes="0;0.25;0.5;0.75;1" dur="8s" repeatCount="indefinite"/>
+                                </ellipse>
+                                <ellipse class="rotating-outline" cx="0" cy="130" rx="35" ry="55" fill="none" stroke-width="1.2" stroke-dasharray="3 3">
+                                    <animateTransform attributeName="transform" type="rotate" from="0 0 130" to="360 0 130" dur="8s" repeatCount="indefinite"/>
+                                    <animate attributeName="filter" 
+                                            values="url(#true-glow-yellow);url(#true-glow-pink);url(#true-glow-deep-purple);url(#true-glow-yellow)" 
+                                            keyTimes="0;0.3333;0.6666;1" 
+                                            dur="8s" 
+                                            repeatCount="indefinite"/>
+                                </ellipse>
+
+                                <!-- Left Wing -->
+                                <ellipse class="owl-wing-part" cx="-40" cy="55" rx="25" ry="85" fill="var(--dark-bg)">
+                                    <animate attributeName="rx" values="25;26;25;24;25" keyTimes="0;0.25;0.5;0.75;1" dur="8s" repeatCount="indefinite"/>
+                                    <animate attributeName="ry" values="85;86;85;84;85" keyTimes="0;0.25;0.5;0.75;1" dur="8s" repeatCount="indefinite"/>
+                                </ellipse>
+                                <ellipse class="rotating-outline" cx="-40" cy="55" rx="25" ry="85" fill="none" stroke-width="1.2" stroke-dasharray="3 3">
+                                    <animateTransform attributeName="transform" type="rotate" from="0 -40 55" to="360 -40 55" dur="7s" repeatCount="indefinite"/>
+                                    <animate attributeName="filter" 
+                                            values="url(#true-glow-deep-purple);url(#true-glow-yellow);url(#true-glow-pink);url(#true-glow-deep-purple)" 
+                                            keyTimes="0;0.3333;0.6666;1" 
+                                            dur="8s" 
+                                            repeatCount="indefinite"/>
+                                </ellipse>
+
+                                <!-- Right Wing -->
+                                <ellipse class="owl-wing-part" cx="40" cy="55" rx="25" ry="85" fill="var(--dark-bg)"/>
+                                <ellipse class="rotating-outline" cx="40" cy="55" rx="25" ry="85" fill="none" stroke-width="1.2" stroke-dasharray="3 3">
+                                    <animateTransform attributeName="transform" type="rotate" from="0 40 55" to="360 40 55" dur="7s" repeatCount="indefinite"/>
+                                    <animate attributeName="filter" 
+                                            values="url(#true-glow-deep-purple);url(#true-glow-yellow);url(#true-glow-pink);url(#true-glow-deep-purple)" 
+                                            keyTimes="0;0.3333;0.6666;1" 
+                                            dur="8s" 
+                                            repeatCount="indefinite"/>
+                                </ellipse>
+
+                                <!-- Torso middle -->
+                                <ellipse class="owl-torso-part" cx="0" cy="55" rx="48" ry="85" fill="var(--dark-bg)">
+                                    <animate attributeName="rx" values="48;49;48;47;48" keyTimes="0;0.25;0.5;0.75;1" dur="8s" repeatCount="indefinite"/>
+                                    <animate attributeName="ry" values="85;86;85;84;85" keyTimes="0;0.25;0.5;0.75;1" dur="8s" repeatCount="indefinite"/>
+                                </ellipse>
+                                <ellipse class="rotating-outline" cx="0" cy="55" rx="48" ry="85" fill="none" stroke-width="1.2" stroke-dasharray="3 3">
+                                    <animateTransform attributeName="transform" type="rotate" from="0 0 55" to="360 0 55" dur="9s" repeatCount="indefinite"/>
+                                    <animate attributeName="filter" 
+                                            values="url(#true-glow-yellow);url(#true-glow-pink);url(#true-glow-deep-purple);url(#true-glow-yellow)" 
+                                            keyTimes="0;0.3333;0.6666;1" 
+                                            dur="8s" 
+                                            repeatCount="indefinite"/>
+                                </ellipse>
+
+                                <!-- Head (main circle) - its outline is the .rotating-border class, handled in CSS -->
+                                <circle class="owl-head-part" cx="0" cy="-50" r="58" fill="var(--dark-bg)">
+                                    <animate attributeName="r" values="58;59;58;57;58" keyTimes="0;0.25;0.5;0.75;1" dur="8s" repeatCount="indefinite"/>
+                                </circle>
+                                
+                                <!-- Left Head side -->
+                                <ellipse class="owl-head-part" cx="-26" cy="-50" rx="31" ry="50" fill="var(--dark-bg)">
+                                    <animate attributeName="rx" values="31;32;31;30;31" keyTimes="0;0.25;0.5;0.75;1" dur="8s" repeatCount="indefinite"/>
+                                    <animate attributeName="ry" values="50;51;50;49;50" keyTimes="0;0.25;0.5;0.75;1" dur="8s" repeatCount="indefinite"/>
+                                </ellipse>
+                                <ellipse class="rotating-outline" cx="-26" cy="-50" rx="31" ry="50" fill="none" stroke-width="1.2" stroke-dasharray="3 3">
+                                    <animateTransform attributeName="transform" type="rotate" from="0 -26 -50" to="360 -26 -50" dur="6s" repeatCount="indefinite"/>
+                                    <animate attributeName="filter" 
+                                            values="url(#true-glow-pink);url(#true-glow-deep-purple);url(#true-glow-yellow);url(#true-glow-pink)" 
+                                            keyTimes="0;0.3333;0.6666;1" 
+                                            dur="8s" 
+                                            repeatCount="indefinite"/>
+                                </ellipse>
+
+                                <!-- Right Head side -->
+                                <ellipse class="owl-head-part" cx="26" cy="-50" rx="31" ry="50" fill="var(--dark-bg)">
+                                    <animate attributeName="rx" values="31;32;31;30;31" keyTimes="0;0.25;0.5;0.75;1" dur="8s" repeatCount="indefinite"/>
+                                    <animate attributeName="ry" values="50;51;50;49;50" keyTimes="0;0.25;0.5;0.75;1" dur="8s" repeatCount="indefinite"/>
+                                </ellipse>
+                                <ellipse class="rotating-outline" cx="26" cy="-50" rx="31" ry="50" fill="none" stroke-width="1.2" stroke-dasharray="3 3">
+                                    <animateTransform attributeName="transform" type="rotate" from="0 26 -50" to="360 26 -50" dur="6s" repeatCount="indefinite"/>
+                                    <animate attributeName="filter" 
+                                            values="url(#true-glow-pink);url(#true-glow-deep-purple);url(#true-glow-yellow);url(#true-glow-pink)" 
+                                            keyTimes="0;0.3333;0.6666;1" 
+                                            dur="8s" 
+                                            repeatCount="indefinite"/>
+                                </ellipse>
+                            </g>
+                        </g>
+                        <!-- Owl face group (eyes and beak) -->
+                        <g class="face-group">
+                            <g class="eye-glow-container">
+                                <!-- Left Eye (now glows with torso colors) -->
+                                <circle id="left-eye-main-circle" cx="-23" cy="-50" r="15" fill="var(--dark-bg)" >
+                                    <animate attributeName="filter" 
+                                            values="url(#true-glow-yellow);url(#true-glow-pink);url(#true-glow-deep-purple);url(#true-glow-yellow)" 
+                                            keyTimes="0;0.3333;0.6666;1" 
+                                            dur="8s" 
+                                            repeatCount="indefinite"/>
+                                    <animate attributeName="r" values="15;16;15;14;15" keyTimes="0;0.25;0.5;0.75;1" dur="8s" repeatCount="indefinite"/>
+                                </circle>
+                                <circle class="rotating-outline" cx="-23" cy="-50" r="15" fill="none" stroke-width="0.8" stroke-dasharray="2 2">
+                                    <animateTransform attributeName="transform" type="rotate" from="0 -23 -50" to="360 -23 -50" dur="4s" repeatCount="indefinite"/>
+                                    <animate attributeName="filter" 
+                                            values="url(#true-glow-pink);url(#true-glow-deep-purple);url(#true-glow-yellow);url(#true-glow-pink)" 
+                                            keyTimes="0;0.3333;0.6666;1" 
+                                            dur="8s" 
+                                            repeatCount="indefinite"/>
+                                </circle>
+
+                                <!-- Right Eye (now glows with torso colors) -->
+                                <circle id="right-eye-main-circle" cx="23" cy="-50" r="15" fill="var(--dark-bg)" >
+                                    <animate attributeName="filter" 
+                                            values="url(#true-glow-yellow);url(#true-glow-pink);url(#true-glow-deep-purple);url(#true-glow-yellow)" 
+                                            keyTimes="0;0.3333;0.6666;1" 
+                                            dur="8s" 
+                                            repeatCount="indefinite"/>
+                                    <animate attributeName="r" values="15;16;15;14;15" keyTimes="0;0.25;0.5;0.75;1" dur="8s" repeatCount="indefinite"/>
+                                </circle>
+                                <circle class="rotating-outline" cx="23" cy="-50" r="15" fill="none" stroke-width="0.8" stroke-dasharray="2 2">
+                                    <animateTransform attributeName="transform" type="rotate" from="0 23 -50" to="360 23 -50" dur="4s" repeatCount="indefinite"/>
+                                    <animate attributeName="filter" 
+                                            values="url(#true-glow-pink);url(#true-glow-deep-purple);url(#true-glow-yellow);url(#true-glow-pink)" 
+                                            keyTimes="0;0.3333;0.6666;1" 
+                                            dur="8s" 
+                                            repeatCount="indefinite"/>
+                                </circle>
+                            </g>
+                            <circle class="pupil" cx="-23" cy="-50" r="7" fill="var(--dark-bg)" />
+                            <circle class="pupil" cx="23" cy="-50" r="7" fill="var(--dark-bg)" />
+                            <polygon points="-5, -46 5, -46 0, -23" fill="var(--light-text)" />
+                        </g>
+                    </symbol>
+                </defs>
+
+                <!-- New group for nebula layers -->
+                <g id="nebula-layers">
+                    <!-- Nebula 1: Large, amorphous shape with subtle pink glow -->
+                    <path d="M 0 0 C 150 50 100 150 200 200 C 300 250 350 150 450 100 C 500 50 600 0 800 50 L 800 600 L 0 600 Z"
+                          class="nebula-shape" fill="rgba(255, 30, 142, 0.03)" filter="url(#true-glow-pink)">
+                        <!-- Slow horizontal and vertical drift -->
+                        <animateTransform attributeName="transform" type="translate" from="0 0" to="50 30" dur="40s" repeatCount="indefinite" additive="sum" calcMode="linear"/>
+                        <!-- Subtle opacity pulse -->
+                        <animate attributeName="opacity" values="0.05;0.1;0.05" keyTimes="0;0.5;1" dur="25s" repeatCount="indefinite"/>
+                    </path>
+                    <!-- Nebula 2: Another amorphous shape with subtle deep purple glow -->
+                    <path d="M 800 600 C 650 550 700 450 600 400 C 500 350 450 450 350 500 C 300 550 200 600 0 550 L 0 0 L 800 0 Z"
+                          class="nebula-shape" fill="rgba(44, 1, 90, 0.03)" filter="url(#true-glow-deep-purple)">
+                        <!-- Slow horizontal and vertical drift (different direction) -->
+                        <animateTransform attributeName="transform" type="translate" from="0 0" to="-40 -20" dur="45s" repeatCount="indefinite" additive="sum" calcMode="linear"/>
+                        <!-- Very slow rotation around center -->
+                        <animateTransform attributeName="transform" type="rotate" from="0 400 300" to="360 400 300" dur="60s" repeatCount="indefinite" additive="sum" />
+                        <!-- Subtle opacity pulse (desynchronized) -->
+                        <animate attributeName="opacity" values="0.08;0.03;0.08" keyTimes="0;0.5;1" dur="20s" repeatCount="indefinite"/>
+                    </path>
+                </g>
+                
+                <!-- New group for dynamic light blobs following owls (now 6 of them) -->
+                <g id="owl-light-blobs">
+                    <circle id="light-blob-1" cx="0" cy="0" r="100" fill="var(--primary-glyph-color)" fill-opacity="0.08" filter="url(#true-glow-pink)">
+                        <animate attributeName="r" values="100;120;100" keyTimes="0;0.5;1" dur="4s" repeatCount="indefinite" />
+                        <animate attributeName="fill-opacity" values="0.08;0.12;0.08" keyTimes="0;0.5;1" dur="4s" repeatCount="indefinite" />
+                    </circle>
+                    <circle id="light-blob-2" cx="0" cy="0" r="100" fill="var(--deep-purple)" fill-opacity="0.08" filter="url(#true-glow-deep-purple)">
+                        <animate attributeName="r" values="100;120;100" keyTimes="0;0.5;1" dur="4s" repeatCount="indefinite" />
+                        <animate attributeName="fill-opacity" values="0.08;0.12;0.08" keyTimes="0;0.5;1" dur="4s" repeatCount="indefinite" />
+                    </circle>
+                    <circle id="light-blob-3" cx="0" cy="0" r="100" fill="var(--solar-yellow)" fill-opacity="0.08" filter="url(#true-glow-yellow)">
+                        <animate attributeName="r" values="100;120;100" keyTimes="0;0.5;1" dur="4s" repeatCount="indefinite" />
+                        <animate attributeName="fill-opacity" values="0.08;0.12;0.08" keyTimes="0;0.5;1" dur="4s" repeatCount="indefinite" />
+                    </circle>
+                     <circle id="light-blob-4" cx="0" cy="0" r="100" fill="var(--primary-glyph-color)" fill-opacity="0.08" filter="url(#true-glow-pink)">
+                        <animate attributeName="r" values="100;120;100" keyTimes="0;0.5;1" dur="4s" repeatCount="indefinite" />
+                        <animate attributeName="fill-opacity" values="0.08;0.12;0.08" keyTimes="0;0.5;1" dur="4s" repeatCount="indefinite" />
+                    </circle>
+                    <circle id="light-blob-5" cx="0" cy="0" r="100" fill="var(--deep-purple)" fill-opacity="0.08" filter="url(#true-glow-deep-purple)">
+                        <animate attributeName="r" values="100;120;100" keyTimes="0;0.5;1" dur="4s" repeatCount="indefinite" />
+                        <animate attributeName="fill-opacity" values="0.08;0.12;0.08" keyTimes="0;0.5;1" dur="4s" repeatCount="indefinite" />
+                    </circle>
+                    <circle id="light-blob-6" cx="0" cy="0" r="100" fill="var(--solar-yellow)" fill-opacity="0.08" filter="url(#true-glow-yellow)">
+                        <animate attributeName="r" values="100;120;100" keyTimes="0;0.5;1" dur="4s" repeatCount="indefinite" />
+                        <animate attributeName="fill-opacity" values="0.08;0.12;0.08" keyTimes="0;0.5;1" dur="4s" repeatCount="indefinite" />
+                    </circle>
+                </g>
+
+                <!-- Group for energy motes, applying a subtle eye glow filter -->
+                <g id="energy-motes" filter="url(#eye-glow-subtle)"></g>
+                
+                <!-- Instances of the owl symbol, positioned for 6 owls -->
+                <use id="owl-1" href="#owl" x="100" y="100" width="150" height="165" />
+                <use id="owl-2" href="#owl" x="325" y="100" width="150" height="165" />
+                <use id="owl-3" href="#owl" x="550" y="100" width="150" height="165" />
+                <use id="owl-4" href="#owl" x="100" y="300" width="150" height="165" />
+                <use id="owl-5" href="#owl" x="325" y="300" width="150" height="165" />
+                <use id="owl-6" href="#owl" x="550" y="300" width="150" height="165" />
+
+            </svg>
+        </section>
+
+    </div> <!-- End main-content-wrapper -->
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const svgNS = 'http://www.w3.org/2000/svg'; // SVG namespace
+            const mainOwlSvgElement = document.querySelector('#owls-section svg'); // Reference to the main SVG element for owls
+            const motesContainer = document.getElementById('energy-motes');
+            const particleCount = 2000;
+
+            // Function to generate points for a regular polygon
+            function createPolygonPoints(cx, cy, radius, sides) {
+                const points = [];
+                for (let i = 0; i < sides; i++) {
+                    const angle = (Math.PI * 2 * i / sides) - (Math.PI / 2); // Start point upwards
+                    points.push(`${cx + radius * Math.cos(angle)},${cy + radius * Math.sin(angle)}`);
+                }
+                return points.join(' ');
+            }
+
+            // Function to generate points for a star
+            function createStarPoints(cx, cy, outerRadius, innerRadius, numTips) {
+                const points = [];
+                for (let i = 0; i < numTips * 2; i++) {
+                    const radius = (i % 2 === 0) ? outerRadius : innerRadius;
+                    const angle = (Math.PI * i / numTips) - (Math.PI / 2); // Start point upwards
+                    points.push(`${cx + radius * Math.cos(angle)},${cy + radius * Math.sin(angle)}`);
+                }
+                return points.join(' ');
+            }
+
+            // Generate background energy motes (circles, polygons, stars)
+            for (let i = 0; i < particleCount; i++) {
+                const x = Math.random() * 800; // Random X position within SVG viewBox width
+                const y = Math.random() * 600; // Random Y position within SVG viewBox height
+                const delay = Math.random() * -10; // Random negative animation delay for staggered start
+                const duration = Math.random() * 8 + 6; // Random animation duration between 6 and 14 seconds
+
+                const moteType = Math.random();
+                let mote;
+
+                if (moteType < 0.4) { // 40% circles
+                    mote = document.createElementNS(svgNS, 'circle');
+                    mote.setAttribute('r', Math.random() * 2 + 1); // Random radius (increased from 0.5-2 to 1-3)
+                    mote.setAttribute('cx', x);
+                    mote.setAttribute('cy', y);
+                } else if (moteType < 0.8) { // 40% polygons
+                    mote = document.createElementNS(svgNS, 'polygon');
+                    const sides = Math.floor(Math.random() * 4) + 3; // 3 (triangle) to 6 (hexagon) sides
+                    const radius = Math.random() * 2 + 1; // Increased radius
+                    mote.setAttribute('points', createPolygonPoints(x, y, radius, sides));
+                } else { // 20% stars
+                    mote = document.createElementNS(svgNS, 'polygon');
+                    const outerRadius = Math.random() * 2 + 1; // Increased outerRadius
+                    const innerRadius = outerRadius * (0.3 + Math.random() * 0.3); // Vary innerRadius
+                    const numTips = 5;
+                    mote.setAttribute('points', createStarPoints(x, y, outerRadius, innerRadius, numTips));
+                }
+
+                // Common attributes for all motes
+                mote.setAttribute('class', 'mote');
+                mote.style.animationDelay = `${delay}s`;
+                mote.style.animationDuration = `${duration}s`;
+                motesContainer.appendChild(mote);
+            }
+
+            /**
+             * Generates a burst of particles from a specific owl's position.
+             * @param {number} owlX - The X coordinate of the owl's top-left corner.
+             * @param {number} owlY - The Y coordinate of the owl's top-left corner.
+             * @param {number} owlWidth - The width of the owl's <use> element.
+             * @param {number} owlHeight - The height of the owl's <use> element.
+             */
+            function generateOwlEmittedParticles(owlX, owlY, owlWidth, owlHeight) {
+                const particlesPerBurst = 8; // Number of particles to emit
+                const spreadRadius = 25; // How far around the owl particles can initially appear
+                const owlCenterX = owlX + owlWidth / 2;
+                const owlCenterY = owlY + owlHeight / 2;
+
+                for (let k = 0; k < particlesPerBurst; k++) {
+                    // Initial position randomly around the owl's center
+                    const startX = owlCenterX + (Math.random() - 0.5) * spreadRadius;
+                    const startY = owlCenterY + (Math.random() - 0.5) * spreadRadius;
+
+                    const delay = Math.random() * -3; // Shorter negative delay for faster emission
+                    const duration = Math.random() * 4 + 4; // Shorter duration (4-8s) for faster dissipation
+
+                    const moteType = Math.random();
+                    let mote;
+
+                    // Re-use particle generation logic for emitted particles
+                    if (moteType < 0.4) { // 40% circles
+                        mote = document.createElementNS(svgNS, 'circle');
+                        mote.setAttribute('r', Math.random() * 1.5 + 0.5); // Slightly smaller for emitted particles
+                        mote.setAttribute('cx', startX);
+                        mote.setAttribute('cy', startY);
+                    } else if (moteType < 0.8) { // 40% polygons
+                        mote = document.createElementNS(svgNS, 'polygon');
+                        const sides = Math.floor(Math.random() * 4) + 3;
+                        const radius = Math.random() * 1.5 + 0.5;
+                        mote.setAttribute('points', createPolygonPoints(startX, startY, radius, sides));
+                    } else { // 20% stars
+                        mote = document.createElementNS(svgNS, 'polygon');
+                        const outerRadius = Math.random() * 1.5 + 0.5;
+                        const innerRadius = outerRadius * (0.3 + Math.random() * 0.3);
+                        const numTips = 5;
+                        mote.setAttribute('points', createStarPoints(startX, startY, outerRadius, innerRadius, numTips));
+                    }
+
+                    mote.setAttribute('class', 'mote'); // Ensure it uses the general mote animation
+                    mote.style.animationDelay = `${delay}s`;
+                    mote.style.animationDuration = `${duration}s`;
+                    motesContainer.appendChild(mote);
+                }
+            }
+
+
+            // --- Equilateral Triangle Alignment & Owl Movement (Now for 6 owls and 10 patterns) ---
+
+            // Define the base data for 6 owls, including their original SVG x, y attributes
+            const baseOwlsData = [
+                { id: 'owl-1', element: document.getElementById('owl-1'), initialSvgX: 100, initialSvgY: 100 },
+                { id: 'owl-2', element: document.getElementById('owl-2'), initialSvgX: 325, initialSvgY: 100 },
+                { id: 'owl-3', element: document.getElementById('owl-3'), initialSvgX: 550, initialSvgY: 100 },
+                { id: 'owl-4', element: document.getElementById('owl-4'), initialSvgX: 100, initialSvgY: 300 },
+                { id: 'owl-5', element: document.getElementById('owl-5'), initialSvgX: 325, initialSvgY: 300 },
+                { id: 'owl-6', element: document.getElementById('owl-6'), initialSvgX: 550, initialSvgY: 300 }
+            ];
+
+            // Get light blob elements (adjusted for 6 owls)
+            const lightBlob1 = document.getElementById('light-blob-1');
+            const lightBlob2 = document.getElementById('light-blob-2');
+            const lightBlob3 = document.getElementById('light-blob-3');
+            const lightBlob4 = document.getElementById('light-blob-4');
+            const lightBlob5 = document.getElementById('light-blob-5');
+            const lightBlob6 = document.getElementById('light-blob-6');
+
+            // Map owls to their light blobs
+            const owlLightBlobMap = {
+                'owl-1': lightBlob1,
+                'owl-2': lightBlob2,
+                'owl-3': lightBlob3,
+                'owl-4': lightBlob4,
+                'owl-5': lightBlob5,
+                'owl-6': lightBlob6
+            };
+
+            // Get all pupil elements and their corresponding eye circles for gaze tracking (adjusted for 6 owls)
+            const allPupils = [];
+            baseOwlsData.forEach(owlData => {
+                const owlElement = owlData.element;
+                const leftPupil = owlElement.querySelector('.pupil[cx="-23"]');
+                const rightPupil = owlElement.querySelector('.pupil[cx="23"]');
+                const leftEyeCircle = owlElement.querySelector('#left-eye-main-circle');
+                const rightEyeCircle = owlElement.querySelector('#right-eye-main-circle');
+
+                if (leftPupil && leftEyeCircle) {
+                    allPupils.push({
+                        pupilElement: leftPupil,
+                        eyeCircleElement: leftEyeCircle,
+                        parentOwlElement: owlElement,
+                        relativeCx: parseFloat(leftPupil.getAttribute('cx')), // Get original CX from symbol
+                        relativeCy: parseFloat(leftPupil.getAttribute('cy'))  // Get original CY from symbol
+                    });
+                }
+                if (rightPupil && rightEyeCircle) {
+                    allPupils.push({
+                        pupilElement: rightPupil,
+                        eyeCircleElement: rightEyeCircle,
+                        parentOwlElement: owlElement,
+                        relativeCx: parseFloat(rightPupil.getAttribute('cx')), // Get original CX from symbol
+                        relativeCy: parseFloat(rightPupil.getAttribute('cy'))  // Get original CY from symbol
+                    });
+                }
+            });
+
+
+            // Define 10 different "dance" patterns, each with 6 target positions
+            let currentDanceIndex = 0;
+            const dancePatterns = [
+                // Pattern 1: Hexagon
+                [
+                    { x: 400, y: 150 }, // Top
+                    { x: 550, y: 250 }, // Top-right
+                    { x: 550, y: 400 }, // Bottom-right
+                    { x: 400, y: 500 }, // Bottom
+                    { x: 250, y: 400 }, // Bottom-left
+                    { x: 250, y: 250 }  // Top-left
+                ],
+                // Pattern 2: Two Rows of Three
+                [
+                    { x: 150, y: 150 }, { x: 400, y: 150 }, { x: 650, y: 150 },
+                    { x: 150, y: 450 }, { x: 400, y: 450 }, { x: 650, y: 450 }
+                ],
+                // Pattern 3: Vertical Stack
+                [
+                    { x: 400, y: 50 },
+                    { x: 400, y: 150 },
+                    { x: 400, y: 250 },
+                    { x: 400, y: 350 },
+                    { x: 400, y: 450 },
+                    { x: 400, y: 550 }
+                ],
+                // Pattern 4: Cross Shape
+                [
+                    { x: 400, y: 50 },  // Top
+                    { x: 400, y: 300 }, // Center
+                    { x: 400, y: 550 }, // Bottom
+                    { x: 150, y: 300 }, // Left
+                    { x: 650, y: 300 }, // Right
+                    { x: 50, y: 50 }    // Extra (top-left, could be another cross point)
+                ],
+                // Pattern 5: Diamond
+                [
+                    { x: 400, y: 50 },  // Top point
+                    { x: 650, y: 300 }, // Right point
+                    { x: 400, y: 550 }, // Bottom point
+                    { x: 150, y: 300 }, // Left point
+                    { x: 300, y: 200 }, // Inner Top-left
+                    { x: 500, y: 400 }  // Inner Bottom-right
+                ],
+                // Pattern 6: Concentric Circles (approximate)
+                [
+                    { x: 400, y: 300 }, // Center
+                    { x: 400, y: 200 }, // Outer top
+                    { x: 500, y: 300 }, // Outer right
+                    { x: 400, y: 400 }, // Outer bottom
+                    { x: 300, y: 300 }, // Outer left
+                    { x: 450, y: 250 }  // Mid-radius
+                ],
+                // Pattern 7: Diagonal Line (top-left to bottom-right)
+                [
+                    { x: 100, y: 100 },
+                    { x: 200, y: 200 },
+                    { x: 300, y: 300 },
+                    { x: 400, y: 400 },
+                    { x: 500, y: 500 },
+                    { x: 600, y: 600 }
+                ],
+                // Pattern 8: Irregular Cluster (random-ish grouping)
+                [
+                    { x: 200, y: 250 },
+                    { x: 250, y: 350 },
+                    { x: 350, y: 200 },
+                    { x: 450, y: 300 },
+                    { x: 500, y: 400 },
+                    { x: 600, y: 250 }
+                ],
+                // Pattern 9: Spiral (simple approximation)
+                [
+                    { x: 400, y: 300 }, // Center
+                    { x: 400, y: 250 }, // Out 1
+                    { x: 450, y: 250 }, // Turn
+                    { x: 450, y: 350 }, // Out 2
+                    { x: 350, y: 350 }, // Turn
+                    { x: 350, y: 200 }  // Out 3
+                ],
+                // Pattern 10: Random Scatter (within a defined area)
+                [
+                    { x: Math.random() * 700 + 50, y: Math.random() * 500 + 50 },
+                    { x: Math.random() * 700 + 50, y: Math.random() * 500 + 50 },
+                    { x: Math.random() * 700 + 50, y: Math.random() * 500 + 50 },
+                    { x: Math.random() * 700 + 50, y: Math.random() * 500 + 50 },
+                    { x: Math.random() * 700 + 50, y: Math.random() * 500 + 50 },
+                    { x: Math.random() * 700 + 50, y: Math.random() * 500 + 50 }
+                ]
+            ];
+
+            let animationStartTime = null;
+            let layoutChangeTimeout; // Variable to hold the setTimeout ID
+            const cycleInterval = 4000; // 4 seconds between the end of one animation and the start of the next
+            const animationDuration = 1500; // 1.5 seconds for the transition
+
+
+            let mouseX_svg = 0;
+            let mouseY_svg = 0;
+
+            // Event listener for mouse movement to update SVG mouse coordinates
+            // Now listening on the main window to track mouse globally for gaze
+            window.addEventListener('mousemove', (e) => {
+                // Get coordinates relative to the *main owl SVG* for pupil tracking
+                const pt = mainOwlSvgElement.createSVGPoint();
+                pt.x = e.clientX;
+                pt.y = e.clientY;
+                const svgP = pt.matrixTransform(mainOwlSvgElement.getScreenCTM().inverse());
+                mouseX_svg = svgP.x;
+                mouseY_svg = svgP.y;
+            });
+
+            /**
+             * Shuffles an array in place.
+             * @param {Array} array - The array to shuffle.
+             * @returns {Array} The shuffled array.
+             */
+            function shuffleArray(array) {
+                for (let i = array.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [array[i], array[j]] = [array[j], array[i]];
+                }
+                return array;
+            }
+
+            // Track which owls have just settled to emit particles once per settlement
+            const hasEmittedParticles = new Map();
+
+            /**
+             * Initiates a new layout for the owls based on the current dance pattern
+             * and shuffles their positions within that pattern.
+             * @param {number} [patternIndexOverride] - Optional, if provided, jumps to this pattern index.
+             */
+            function startNewTriangleLayout(patternIndexOverride) {
+                animationStartTime = null; // Reset start time for the new animation
+                hasEmittedParticles.clear(); // Clear emission tracking for the new layout cycle
+
+                // Clear any pending automatic layout change
+                if (layoutChangeTimeout) {
+                    clearTimeout(layoutChangeTimeout);
+                }
+
+                // Determine the next pattern index
+                let nextPatternIndex;
+                if (typeof patternIndexOverride === 'number') {
+                    nextPatternIndex = patternIndexOverride;
+                } else {
+                    nextPatternIndex = (currentDanceIndex + 1) % dancePatterns.length;
+                }
+                currentDanceIndex = nextPatternIndex; // Update the global currentDanceIndex
+
+                // Get the target positions for the current dance pattern
+                const currentPatternTargetPositions = dancePatterns[currentDanceIndex];
+                
+                // Shuffle these positions to assign them randomly to owls
+                const shuffledTargetPositions = shuffleArray([...currentPatternTargetPositions]);
+                
+                // Assign each owl a unique target position for this cycle
+                baseOwlsData.forEach((owlData, index) => {
+                    owlData.targetX = shuffledTargetPositions[index].x;
+                    owlData.targetY = shuffledTargetPositions[index].y;
+                });
+
+                requestAnimationFrame(animateOwlTransition);
+            }
+
+            /**
+             * Animates the owls smoothly to their new target positions in the triangle layout.
+             * @param {DOMHighResTimeStamp} currentTime - The current time provided by requestAnimationFrame.
+             */
+            function animateOwlTransition(currentTime) {
+                if (animationStartTime === null) {
+                    animationStartTime = currentTime;
+                }
+                let progress = (currentTime - animationStartTime) / animationDuration;
+                progress = Math.min(1, Math.max(0, progress)); // Clamp progress between 0 and 1
+                const easedProgress = 0.5 - Math.cos(progress * Math.PI) / 2; // Ease-in-out curve
+
+                baseOwlsData.forEach(owlData => {
+                    const owlElement = owlData.element;
+                    const startX = owlData.initialSvgX; // This is the *current* base position of the <use> element
+                    const startY = owlData.initialSvgY;
+                    const targetX = owlData.targetX;
+                    const targetY = owlData.targetY;
+
+                    // Calculate the current interpolated position for the owl
+                    const currentX = startX + (targetX - startX) * easedProgress;
+                    const currentY = startY + (targetY - startY) * easedProgress;
+
+                    // Apply the new x, y directly to the <use> element for the owl
+                    owlElement.setAttribute('x', currentX);
+                    owlElement.setAttribute('y', currentY);
+                    owlElement.style.transform = ''; 
+
+                    // Update corresponding light blob position to be centered on the owl
+                    const lightBlob = owlLightBlobMap[owlData.id];
+                    if (lightBlob) {
+                        const owlDisplayWidth = parseFloat(owlElement.getAttribute('width'));
+                        const owlDisplayHeight = parseFloat(owlElement.getAttribute('height'));
+                        lightBlob.setAttribute('cx', currentX + owlDisplayWidth / 2);
+                        lightBlob.setAttribute('cy', currentY + owlDisplayHeight / 2);
+                    }
+
+                    // If an owl has just settled, emit particles and mark it as emitted
+                    // This condition ensures particles are emitted only once per settlement.
+                    if (progress === 1 && (!hasEmittedParticles.has(owlData.id) || !hasEmittedParticles.get(owlData.id))) {
+                        // Only emit if the position actually changed, preventing re-emission on static positions
+                        if (startX !== targetX || startY !== targetY) {
+                            generateOwlEmittedParticles(owlData.targetX, owlData.targetY, parseFloat(owlElement.getAttribute('width')), parseFloat(owlElement.getAttribute('height')));
+                            hasEmittedParticles.set(owlData.id, true); // Mark as emitted for this cycle
+                        }
+                    }
+                });
+
+                // Check if animation is complete
+                if (progress < 1) {
+                    requestAnimationFrame(animateOwlTransition);
+                } else {
+                    // Animation finished: Update initialSvgX/Y to the final target positions.
+                    // This is crucial for the next animation to start from the correct "base".
+                    baseOwlsData.forEach(owlData => {
+                        owlData.initialSvgX = owlData.targetX;
+                        owlData.initialSvgY = owlData.targetY;
+                    });
+                    // Schedule the next automatic layout change after a delay.
+                    // This timeout will be cleared if a user clicks an owl before it triggers.
+                    layoutChangeTimeout = setTimeout(() => startNewTriangleLayout(), cycleInterval); 
+                }
+            }
+
+            // Function to animate pupil gaze
+            function animateGaze() {
+                allPupils.forEach(eyeData => {
+                    const { pupilElement, eyeCircleElement, parentOwlElement, relativeCx, relativeCy } = eyeData;
+
+                    // Get the current transformed position of the parent <use> element
+                    const owlCurrentX = parseFloat(parentOwlElement.getAttribute('x'));
+                    const owlCurrentY = parseFloat(parentOwlElement.getAttribute('y'));
+
+                    // Calculate the absolute center of the eye (the white circle) for this specific owl instance
+                    // These relativeCx/Cy are from the symbol definition, applied to the <use> element's origin.
+                    const eyeAbsoluteCenterX = owlCurrentX + (relativeCx); // Assuming symbol's 0,0 is aligned with <use> x,y
+                    const eyeAbsoluteCenterY = owlCurrentY + (relativeCy); // Assuming symbol's 0,0 is aligned with <use> x,y
+
+                    // Calculate vector from absolute eye center to mouse position
+                    const dx = mouseX_svg - eyeAbsoluteCenterX;
+                    const dy = mouseY_svg - eyeAbsoluteCenterY;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+
+                    let offsetX = 0;
+                    let offsetY = 0;
+
+                    // Limit pupil movement within the eye bounds (radius of the white eye circle minus pupil radius)
+                    const eyeRadius = parseFloat(eyeCircleElement.getAttribute('r'));
+                    const pupilRadius = parseFloat(pupilElement.getAttribute('r'));
+                    const effectiveMaxOffset = eyeRadius - pupilRadius - 1; // Subtract 1 for slight margin
+
+                    if (distance > 0) {
+                        offsetX = (dx / distance) * Math.min(distance, effectiveMaxOffset);
+                        offsetY = (dy / distance) * Math.min(distance, effectiveMaxOffset);
+                    }
+
+                    // Apply new position relative to the original symbol's relative eye center (relativeCx, relativeCy)
+                    pupilElement.setAttribute('cx', relativeCx + offsetX);
+                    pupilElement.setAttribute('cy', relativeCy + offsetY);
+                });
+
+                requestAnimationFrame(animateGaze);
+            }
+
+            // Add click listeners to each main owl instance for particle emission only
+            baseOwlsData.forEach(owlData => {
+                owlData.element.addEventListener('click', (e) => {
+                    // Ensure we get the actual owl's position for particle emission
+                    const owlX = parseFloat(e.currentTarget.getAttribute('x'));
+                    const owlY = parseFloat(e.currentTarget.getAttribute('y'));
+                    const owlWidth = parseFloat(e.currentTarget.getAttribute('width'));
+                    const owlHeight = parseFloat(e.currentTarget.getAttribute('height'));
+                    generateOwlEmittedParticles(owlX, owlY, owlWidth, owlHeight);
+                });
+            });
+
+            // Initial call to start the first layout animation when the page loads.
+            startNewTriangleLayout(0); // Start with the first pattern initially (index 0)
+            // Start the gaze animation loop
+            requestAnimationFrame(animateGaze);
+        });
+    </script>
+
+</body>
+</html>
