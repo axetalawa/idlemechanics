@@ -11,7 +11,7 @@ async function init() {
     const data = await loadManifest();
     const viewer = document.getElementById("viewer");
 
-    for (const category of data.categories) {
+    for (const [index, category] of data.categories.entries()) { // Use .entries() to get index
       const section = document.createElement("section");
       section.className = "simulation-section";
 
@@ -64,7 +64,8 @@ async function init() {
         let currentIndex = 0;
 
         function slideWidthPx() {
-          return section.getBoundingClientRect().width;
+          // Ensure section has dimensions before calculating width
+          return section.clientWidth || section.getBoundingClientRect().width;
         }
 
         function updateView() {
@@ -75,10 +76,11 @@ async function init() {
         }
 
         // Prevent wall-bounce with instant jump
-        function jumpTo(index) {
+        function jumpTo(jumpIndex) { // Renamed parameter to avoid conflict
           track.style.transition = "none";
-          currentIndex = index;
+          currentIndex = jumpIndex;
           updateView();
+          // Force reflow before re-enabling transition
           void track.offsetWidth;
           track.style.transition = "transform 0.8s ease";
         }
@@ -101,16 +103,27 @@ async function init() {
           }
         };
 
-        window.addEventListener("resize", updateView, { passive: true });
-        updateView();
+        // Use ResizeObserver for more reliable width updates
+        const resizeObserver = new ResizeObserver(entries => {
+            requestAnimationFrame(() => { // Prevent layout thrashing
+                if (!Array.isArray(entries) || !entries.length) {
+                    return;
+                }
+                updateView();
+            });
+        });
+        resizeObserver.observe(section);
+        updateView(); // Initial call
       }
 
       viewer.appendChild(section);
 
-      // Fullscreen-sized gap between categories
-      const interlude = document.createElement("div");
-      interlude.className = "interlude";
-      viewer.appendChild(interlude);
+      // MODIFICADO: Adicionar interlude apenas se NÃO for a última categoria
+      if (index < data.categories.length - 1) {
+        const interlude = document.createElement("div");
+        interlude.className = "interlude";
+        viewer.appendChild(interlude);
+      }
     }
   } catch (err) {
     console.error("❌ Error initializing viewer:", err);

@@ -3,12 +3,10 @@
 <head>
     <title>Subduction [Idle Mechanics]</title>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display.swap" rel="stylesheet">
-
-    <!-- REMOVIDO: Link para o arquivo de tema externo -->
-    <!-- <link rel="stylesheet" href="idle-mechanics-theme.css"> -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
 
     <style>
         /* ===========================================
@@ -17,6 +15,7 @@
 
         /* 1. Variáveis e Base */
         :root {
+          /* Paleta de cores do tema para UI */
           --im-color-primary: #ff0090;  
           --im-color-secondary: #fff204;
           --im-color-tertiary: #09ff00; 
@@ -48,14 +47,14 @@
             top: 0;
             left: 0;
             z-index: 1; /* Atrás da UI */
-            cursor: crosshair; 
+            /* ATUALIZAÇÃO: Cursor 'none' para corresponder ao furacão */
+            cursor: none; 
             width: 100%;  
             height: 100%; 
         }
 
-        /* 2. Controles */
+        /* 2. Controles (UI unificada) */
         
-        /* Contêiner de Controles (Base) */
         .im-controls {
           position: absolute;
           z-index: 100; 
@@ -72,27 +71,20 @@
           visibility: visible !important; 
         }
 
-        /* ATUALIZADO: Posicionamento como em throttle.html */
          #controls-top-container {
             top: 20px;
             left: 50%;
             transform: translateX(-50%);
-            flex-direction: row; /* Itens lado a lado */
-            /* Removida transition se não for necessário esconder/mostrar */
+            flex-direction: row; 
         }
 
         #controls-bottom-container {
             bottom: 20px;
             left: 50%;
             transform: translateX(-50%);
-            flex-direction: row; /* Itens lado a lado */
-             /* Removida transition se não for necessário esconder/mostrar */
+            flex-direction: row; 
         }
 
-        /* REMOVIDO: .corner-bottom-left */
-
-
-        /* Botão */
          .im-button {
           display: inline-flex;
           align-items: center;
@@ -179,7 +171,7 @@
 <body>
     <canvas id="simulationCanvas"></canvas>
 
-    <!-- ATUALIZADO: Estrutura da UI com dois contêineres -->
+    <!-- UI (Inalterada) -->
     <div id="controls-top-container" class="im-controls">
          <button id="actionButton" class="im-button"></button>
     </div>
@@ -191,7 +183,6 @@
     </div>
 
     <script>
-        // --- JAVASCRIPT INALTERADO --- 
         // --- Canvas Setup ---
         const canvas = document.getElementById('simulationCanvas');
         const ctx = canvas.getContext('2d');
@@ -223,16 +214,18 @@
            return outMin + (outMax - outMin) * (value - inMin) / (inMax - inMin);
         }
 
-        // --- Color Palette ---
+        // --- ATUALIZAÇÃO: Paleta de Cores ---
+        // Modificada para ser mais escura e corresponder ao tema
         const PALETTE = {
-            deepSpace: '#4338ca', 
-            electricBlue: '#3b82f6', 
-            brightCyan: '#22d3ee', 
-            solarFlare: '#f59e0b', 
-            sunYellow: '#facc15', 
-            whiteHot: '#fef08a',  
-            sparklePink: '#f472b6', 
-            stormColors: ['#4338ca', '#3b82f6', '#22d3ee', '#f59e0b', '#facc15', '#fef08a'],
+            deepSpace: '#0b192f',     // Azul mais escuro e profundo
+            electricBlue: '#1e3a8a',  // Menos "elétrico"
+            brightCyan: '#0e7490',    // Mais suave
+            solarFlare: '#fff204',    // Cor secundária do tema
+            sunYellow: '#fde047',     // Amarelo mais suave
+            whiteHot: '#fef9c3',      // Topo da gama suave
+            sparklePink: '#ff0090',   // Cor primária do tema
+            // Lista de cores atualizada
+            stormColors: ['#0b192f', '#1e3a8a', '#0e7490', '#fde047', '#fef9c3'],
             starColor: '#FFFFFF' 
         };
         const PALETTE_RGB = {};
@@ -242,6 +235,8 @@
             }
         }
         PALETTE_RGB.stormColorsRgb = PALETTE.stormColors.map(hex => hexToRgb(hex));
+        // Cor de fundo global
+        let canvasBgColor = '#0D0D0D'; 
 
         // --- Simulation Parameters ---
         let PARAMS = {
@@ -279,13 +274,15 @@
              PARTICLE_LIFESPAN_VARIATION: 150,
              INNER_REMOVAL_RADIUS_FACTOR: 1.5, 
              trailLength: 6,                 
-             particleBaseAlpha: 0.8,         
+             // ATUALIZAÇÃO: Alpha base menor para focar no brilho
+             particleBaseAlpha: 0.6,         
              trailAlphaFactor: 0.6,          
              sizeSpeedFactor: 0.5,           
              alphaSpeedFactor: 0.3,          
-             PARTICLE_GLOW_BLUR: 5,          
+             // ATUALIZAÇÃO: Brilho maior para visual "volumétrico"
+             PARTICLE_GLOW_BLUR: 12,         
              SPARKLE_CHANCE: 0.02,           
-             SPARKLE_GLOW_BLUR: 8,           
+             SPARKLE_GLOW_BLUR: 16,          
              SPEED_COLOR_FACTOR: 0.8,        
              MAX_TOTAL_PARTICLES: 20000,     
              MOTHER_STRENGTH_MULT: 1.8,      
@@ -301,22 +298,33 @@
         PARAMS.MOUSE_STORM_INFLUENCE_RADIUS_SQ = PARAMS.MOUSE_STORM_INFLUENCE_RADIUS ** 2;
         PARAMS.MOUSE_PARTICLE_INTERACTION_RADIUS_SQ = PARAMS.MOUSE_PARTICLE_INTERACTION_RADIUS ** 2;
 
-        // --- Starfield Parameters ---
-        const STARFIELD_PARAMS = {
-            NUM_STARS: 200, MIN_RADIUS: 0.3, MAX_RADIUS_VAR: 1.2, MIN_ALPHA: 0.2, MAX_ALPHA_VAR: 0.6, BASE_SPEED: 0.03, SPEED_RADIUS_FACTOR: 0.8        
-        };
+        // --- REMOVIDO: Parâmetros do Starfield ---
 
         // --- Global State ---
-        let activeStorms = []; let currentTime = 0; let nextStormId = 0; let stars = []; let currentTotalParticles = 0; 
+        let activeStorms = []; 
+        let currentTime = 0; 
+        let nextStormId = 0; 
+        // --- REMOVIDO: stars = [] ---
+        let currentTotalParticles = 0; 
 
         // --- Vector Helpers ---
         const Vector = { limit: (vx, vy, max) => { const magSq = vx * vx + vy * vy; if (magSq > max * max && max > 0) { const mag = Math.sqrt(magSq); return { x: (vx / mag) * max, y: (vy / mag) * max }; } return { x: vx, y: vy }; } };
 
         // --- Helper Function: Get Smooth Storm Color ---
-         function getSmoothStormColorRgb(currentStrength, maxStrength) { const colors = PALETTE_RGB.stormColorsRgb; if (maxStrength <= 0) { return colors[0]; } const strengthRatio = Math.min(1, Math.max(0, currentStrength / maxStrength)); const maxIndex = colors.length - 1; const scaledRatio = strengthRatio * maxIndex; const index1 = Math.min(maxIndex - 1, Math.floor(scaledRatio)); const index2 = index1 + 1; const segmentFactor = scaledRatio - index1; return lerpColor(colors[index1], colors[index2], segmentFactor); }
+         function getSmoothStormColorRgb(currentStrength, maxStrength) { 
+            const colors = PALETTE_RGB.stormColorsRgb; 
+            if (maxStrength <= 0) { return colors[0]; } 
+            const strengthRatio = Math.min(1, Math.max(0, currentStrength / maxStrength)); 
+            const maxIndex = colors.length - 1; 
+            const scaledRatio = strengthRatio * maxIndex; 
+            const index1 = Math.min(maxIndex - 1, Math.floor(scaledRatio)); 
+            const index2 = index1 + 1; 
+            const segmentFactor = scaledRatio - index1; 
+            return lerpColor(colors[index1], colors[index2], segmentFactor); 
+         }
 
         // --- Storm Class ---
-        class Storm { /* ... (Código da classe Storm inalterado) ... */ 
+        class Storm { 
             constructor(initialX, initialY) {
                 this.id = nextStormId++; 
                 this.x = initialX !== undefined ? initialX : PARAMS.FORMATION_X_MIN + Math.random() * (PARAMS.FORMATION_X_MAX - PARAMS.FORMATION_X_MIN);
@@ -394,30 +402,108 @@
             draw(ctx) {
                 const originalShadowBlur = ctx.shadowBlur; const originalShadowColor = ctx.shadowColor;
                 this.particles.forEach(p => {
-                    const speed = Math.sqrt(p.vx * p.vx + p.vy * p.vy); const speedRatio = Math.min(1, speed / PARAMS.MAX_SPEED); const dynamicAlpha = p.alpha * (1 + speedRatio * PARAMS.alphaSpeedFactor); const finalAlpha = Math.min(1, dynamicAlpha); const dynamicRadius = PARAMS.PARTICLE_RADIUS * (1 + speedRatio * PARAMS.sizeSpeedFactor);
+                    const speed = Math.sqrt(p.vx * p.vx + p.vy * p.vy); const speedRatio = Math.min(1, speed / PARAMS.MAX_SPEED); const dynamicAlpha = p.alpha * (1 + speedRatio * PARAMS.alphaSpeedFactor); 
+                    const finalAlpha = Math.min(1, dynamicAlpha); 
+                    const dynamicRadius = PARAMS.PARTICLE_RADIUS * (1 + speedRatio * PARAMS.sizeSpeedFactor);
+                    
                     let particleRgb, particleGlowBlur, particleColorStyle;
-                    if (p.isSparkle) { particleRgb = PALETTE_RGB.sparklePink; particleColorStyle = `rgb(${particleRgb.r},${particleRgb.g},${particleRgb.b})`; particleGlowBlur = PARAMS.SPARKLE_GLOW_BLUR;
-                    } else { particleRgb = lerpColor(this.baseColorRgb, PALETTE_RGB.whiteHot, speedRatio * PARAMS.SPEED_COLOR_FACTOR); particleColorStyle = `rgb(${particleRgb.r},${particleRgb.g},${particleRgb.b})`; particleGlowBlur = PARAMS.PARTICLE_GLOW_BLUR; }
-                    if (p.history.length > 1) { ctx.shadowBlur = 0; ctx.beginPath(); ctx.moveTo(p.history[0].x, p.history[0].y); for (let i = 1; i < p.history.length; i++) { ctx.lineTo(p.history[i].x, p.history[i].y); } const baseTrailAlpha = finalAlpha * PARAMS.trailAlphaFactor; const trailAlpha = baseTrailAlpha * (p.history.length / PARAMS.trailLength); ctx.strokeStyle = `rgba(${particleRgb.r}, ${particleRgb.g}, ${particleRgb.b}, ${trailAlpha * 0.6})`; ctx.lineWidth = dynamicRadius * 0.8; ctx.lineCap = "round"; ctx.stroke(); }
-                    ctx.shadowBlur = particleGlowBlur; ctx.shadowColor = particleColorStyle; ctx.beginPath(); ctx.arc(p.x, p.y, dynamicRadius, 0, Math.PI * 2); ctx.fillStyle = `rgba(${particleRgb.r}, ${particleRgb.g}, ${particleRgb.b}, ${finalAlpha})`; ctx.fill();
+
+                    if (p.isSparkle) { 
+                        particleRgb = PALETTE_RGB.sparklePink; 
+                        particleColorStyle = `rgb(${particleRgb.r},${particleRgb.g},${particleRgb.b})`; 
+                        particleGlowBlur = PARAMS.SPARKLE_GLOW_BLUR;
+                    } else { 
+                        particleRgb = lerpColor(this.baseColorRgb, PALETTE_RGB.whiteHot, speedRatio * PARAMS.SPEED_COLOR_FACTOR); 
+                        particleColorStyle = `rgb(${particleRgb.r},${particleRgb.g},${particleRgb.b})`; 
+                        particleGlowBlur = PARAMS.PARTICLE_GLOW_BLUR; 
+                    }
+                    
+                    // ATUALIZAÇÃO: Tornar o núcleo da partícula fraco e o brilho forte
+                    const coreAlpha = finalAlpha * 0.2; // Núcleo muito fraco
+                    const trailBaseAlpha = finalAlpha * PARAMS.trailAlphaFactor * 0.5; // Trilhas mais fracas
+                    
+                    // Desenhar trilha
+                    if (p.history.length > 1) { 
+                        ctx.shadowBlur = 0; // Sem brilho para a trilha
+                        ctx.beginPath(); 
+                        ctx.moveTo(p.history[0].x, p.history[0].y); 
+                        for (let i = 1; i < p.history.length; i++) { 
+                            ctx.lineTo(p.history[i].x, p.history[i].y); 
+                        } 
+                        const trailAlpha = trailBaseAlpha * (p.history.length / PARAMS.trailLength); 
+                        ctx.strokeStyle = `rgba(${particleRgb.r}, ${particleRgb.g}, ${particleRgb.b}, ${trailAlpha})`; 
+                        ctx.lineWidth = dynamicRadius * 0.8; 
+                        ctx.lineCap = "round"; 
+                        ctx.stroke(); 
+                    }
+                    
+                    // Desenhar partícula (o brilho é o principal)
+                    ctx.shadowBlur = particleGlowBlur; // Brilho forte
+                    ctx.shadowColor = particleColorStyle; // Cor total do brilho
+                    ctx.beginPath(); 
+                    ctx.arc(p.x, p.y, dynamicRadius, 0, Math.PI * 2); 
+                    // O preenchimento é muito transparente, o brilho faz o trabalho
+                    ctx.fillStyle = `rgba(${particleRgb.r}, ${particleRgb.g}, ${particleRgb.b}, ${coreAlpha})`; 
+                    ctx.fill();
                 });
                 ctx.shadowBlur = originalShadowBlur; ctx.shadowColor = originalShadowColor;
             }
         }
 
-        // --- Starfield Functions ---
-        function initStars() { stars = []; for (let i = 0; i < STARFIELD_PARAMS.NUM_STARS; i++) { const radius = STARFIELD_PARAMS.MIN_RADIUS + Math.random() * STARFIELD_PARAMS.MAX_RADIUS_VAR; stars.push({ x: Math.random() * canvas.width, y: Math.random() * canvas.height, radius: radius, alpha: STARFIELD_PARAMS.MIN_ALPHA + Math.random() * STARFIELD_PARAMS.MAX_ALPHA_VAR, speed: STARFIELD_PARAMS.BASE_SPEED * (1 + radius * STARFIELD_PARAMS.SPEED_RADIUS_FACTOR) }); } }
-        function drawStars(deltaTime) { const starRgb = PALETTE_RGB.starColor || {r:255, g:255, b:255}; ctx.save(); stars.forEach(star => { star.x -= star.speed * deltaTime; if (star.x < -star.radius) { star.x = canvas.width + star.radius; } ctx.beginPath(); ctx.arc(star.x, star.y, star.radius, 0, Math.PI * 2); ctx.fillStyle = `rgba(${starRgb.r}, ${starRgb.g}, ${starRgb.b}, ${star.alpha})`; ctx.fill(); }); ctx.restore(); }
+        // --- REMOVIDO: Funções Starfield ---
+
+        // --- NOVO: Retículo do Mouse ---
+        function drawMouseReticle(ctx) {
+            if (!isMouseOverCanvas) return;
+
+            const crosshairSize = 10;
+            const targetRgb = (PARAMS.MOUSE_FORCE_TYPE === 'repel') ? 
+                hexToRgb(PALETTE.sparklePink) : 
+                hexToRgb(PALETTE.brightCyan);
+            
+            const colorStyle = `rgba(${targetRgb.r}, ${targetRgb.g}, ${targetRgb.b}, 0.8)`;
+            const glowStyle = `rgba(${targetRgb.r}, ${targetRgb.g}, ${targetRgb.b}, 0.4)`;
+
+            ctx.save();
+            ctx.shadowBlur = 8;
+            ctx.shadowColor = glowStyle;
+            
+            ctx.strokeStyle = colorStyle;
+            ctx.lineWidth = 1.5;
+
+            // Mira
+            ctx.beginPath();
+            ctx.moveTo(mouseX - crosshairSize, mouseY);
+            ctx.lineTo(mouseX + crosshairSize, mouseY);
+            ctx.moveTo(mouseX, mouseY - crosshairSize);
+            ctx.lineTo(mouseX, mouseY + crosshairSize);
+            ctx.stroke();
+            
+            // Círculo
+            ctx.beginPath();
+            ctx.arc(mouseX, mouseY, crosshairSize * 0.6, 0, Math.PI * 2);
+            ctx.stroke();
+            
+            ctx.restore();
+        }
 
         // --- Main Simulation Loop ---
         let lastTime = 0; 
         function animate(timestamp) {
-            const elapsed = timestamp - lastTime; const deltaTime = isNaN(elapsed) || elapsed <= 0 ? 1 : Math.min(3.0, elapsed / 16.667); lastTime = timestamp;
+            const elapsed = timestamp - lastTime; 
+            const deltaTime = isNaN(elapsed) || elapsed <= 0 ? 1 : Math.min(3.0, elapsed / 16.667); 
+            lastTime = timestamp;
+            
             if (deltaTime > 0) {
                 currentTime += deltaTime * PARAMS.TIME_SCALE; 
-                ctx.fillStyle = 'rgba(2, 6, 23, 0.22)'; ctx.fillRect(0, 0, canvas.width, canvas.height);
-                drawStars(deltaTime); 
-                if (PARAMS.MOUSE_ENABLED && isMouseOverCanvas) { /* ... (código de interação do mouse) ... */ 
+                
+                // ATUALIZAÇÃO: Limpar com cor sólida, sem trilhas
+                ctx.fillStyle = canvasBgColor;
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                
+                // REMOVIDO: drawStars(deltaTime); 
+
+                if (PARAMS.MOUSE_ENABLED && isMouseOverCanvas) { 
                      activeStorms.forEach(storm => {
                         const stormDx = storm.x - mouseX; const stormDy = storm.y - mouseY; const stormDistSq = stormDx * stormDx + stormDy * stormDy;
                         if (stormDistSq < PARAMS.MOUSE_STORM_INFLUENCE_RADIUS_SQ && storm.particles.length > 0) {
@@ -430,13 +516,24 @@
                         }
                     });
                 }
+                
                 if (activeStorms.length < PARAMS.MAX_ACTIVE_STORMS && Math.random() < PARAMS.STORM_SPAWN_PROBABILITY) { activeStorms.push(new Storm()); }
+                
                 for (let i = activeStorms.length - 1; i >= 0; i--) {
-                    const storm = activeStorms[i]; const keepStorm = storm.update(deltaTime); 
-                    if (keepStorm) { storm.updateParticles(deltaTime); storm.draw(ctx); } 
-                    else { currentTotalParticles -= storm.particles.length; currentTotalParticles = Math.max(0, currentTotalParticles); activeStorms.splice(i, 1); }
+                    const storm = activeStorms[i]; 
+                    const keepStorm = storm.update(deltaTime); 
+                    if (keepStorm) { 
+                        storm.updateParticles(deltaTime); 
+                        storm.draw(ctx); 
+                    } 
+                    else { 
+                        currentTotalParticles -= storm.particles.length; 
+                        currentTotalParticles = Math.max(0, currentTotalParticles); 
+                        activeStorms.splice(i, 1); 
+                    }
                 }
-                if (PARAMS.STORM_MERGE_ENABLED && activeStorms.length > 1) { /* ... (código de fusão) ... */ 
+                
+                if (PARAMS.STORM_MERGE_ENABLED && activeStorms.length > 1) { 
                     let mergedIndices = new Set();
                     for (let i = 0; i < activeStorms.length; i++) {
                         for (let j = i + 1; j < activeStorms.length; j++) {
@@ -448,26 +545,30 @@
                     if (mergedIndices.size > 0) { activeStorms = activeStorms.filter((_, index) => !mergedIndices.has(index)); }
                 }
             }
+            
+            // NOVO: Desenhar o retículo do mouse por cima de tudo
+            drawMouseReticle(ctx);
+            
             requestAnimationFrame(animate);
         }
 
         // --- Event Listeners ---
-        actionButton.addEventListener('click', () => { /* ... (código do botão) ... */ 
+        actionButton.addEventListener('click', () => { 
             console.log('Initiating Subduction...'); activeStorms.forEach(storm => { currentTotalParticles -= storm.particles.length; }); currentTotalParticles = Math.max(0, currentTotalParticles); activeStorms = []; console.log('Storms cleared. Spawning mother storm...');
             if (currentTotalParticles < PARAMS.MAX_TOTAL_PARTICLES) { const motherStorm = new Storm(); motherStorm.maxStrength = (PARAMS.MIN_MAX_STRENGTH + PARAMS.MAX_STRENGTH_VARIATION) * PARAMS.MOTHER_STRENGTH_MULT; motherStorm.maxRadius = (PARAMS.MIN_MAX_RADIUS + PARAMS.MAX_RADIUS_VARIATION) * PARAMS.MOTHER_RADIUS_MULT; motherStorm.maxLifespan = (PARAMS.MIN_LIFESPAN + PARAMS.MAX_LIFESPAN_VARIATION) * PARAMS.MOTHER_LIFESPAN_MULT; activeStorms.push(motherStorm); console.log('Mother storm spawned:', motherStorm);
             } else { console.log('Particle cap reached, cannot spawn mother storm.'); }
         });
-        canvas.addEventListener('click', (event) => { /* ... (código de clique no canvas) ... */ 
+        canvas.addEventListener('click', (event) => { 
             if (activeStorms.length < PARAMS.MAX_ACTIVE_STORMS) { const rect = canvas.getBoundingClientRect(); const clickX = event.clientX - rect.left; const clickY = event.clientY - rect.top; activeStorms.push(new Storm(clickX, clickY)); }
         });
-        canvas.addEventListener('mousemove', (event) => { /* ... (código de movimento do mouse) ... */ 
+        canvas.addEventListener('mousemove', (event) => { 
              const rect = canvas.getBoundingClientRect(); mouseX = event.clientX - rect.left; mouseY = event.clientY - rect.top; isMouseOverCanvas = true; 
         });
         canvas.addEventListener('mouseleave', () => { isMouseOverCanvas = false; });
-        window.addEventListener('keydown', (event) => { /* ... (código de tecla) ... */ 
+        window.addEventListener('keydown', (event) => { 
             if (event.key === 'f' || event.key === 'F') { PARAMS.MOUSE_FORCE_TYPE = PARAMS.MOUSE_FORCE_TYPE === 'repel' ? 'attract' : 'repel'; console.log(`Mouse force set to: ${PARAMS.MOUSE_FORCE_TYPE}`); }
         });
-        canvas.addEventListener('wheel', (event) => { /* ... (código de roda do mouse) ... */ 
+        canvas.addEventListener('wheel', (event) => { 
             event.preventDefault(); const scrollDelta = Math.sign(event.deltaY);
             if (scrollDelta > 0) { PARAMS.MOUSE_FORCE_STRENGTH = Math.max(10, PARAMS.MOUSE_FORCE_STRENGTH - 10); PARAMS.MOUSE_PARTICLE_INTERACTION_RADIUS = Math.max(30, PARAMS.MOUSE_PARTICLE_INTERACTION_RADIUS - 5);
             } else { PARAMS.MOUSE_FORCE_STRENGTH = Math.min(300, PARAMS.MOUSE_FORCE_STRENGTH + 10); PARAMS.MOUSE_PARTICLE_INTERACTION_RADIUS = Math.min(250, PARAMS.MOUSE_PARTICLE_INTERACTION_RADIUS + 5); }
@@ -475,14 +576,18 @@
         });
 
         // --- Resize Canvas ---
-        function resizeCanvas() { /* ... (código de redimensionamento) ... */ 
+        function resizeCanvas() { 
             canvas.width = window.innerWidth; canvas.height = window.innerHeight;
             PARAMS.NORTHWARD_TURN_Y_THRESHOLD = canvas.height * 0.5; PARAMS.LAND_RECT = { x: canvas.width * 0.75, y: 0, width: canvas.width * 0.25, height: canvas.height * 0.6 }; PARAMS.FORMATION_Y_MIN = canvas.height * 0.2; PARAMS.FORMATION_Y_MAX = canvas.height * 0.8; PARAMS.FORMATION_X_MIN = canvas.width * 0.2; PARAMS.FORMATION_X_MAX = canvas.width * 0.8;
-            initStars();
+            
+            // REMOVIDO: initStars();
+            
+            // NOVO: Obter a cor de fundo das variáveis CSS
+            canvasBgColor = getComputedStyle(document.documentElement).getPropertyValue('--im-color-bg') || '#0D0D0D';
         }
 
         // --- UI Controls Setup ---
-        function setupControls() { /* ... (código dos controles) ... */ 
+        function setupControls() { 
             const emergenceRateSlider = document.getElementById('emergenceRate'); const temporalFlowSlider = document.getElementById('temporalFlow'); const surfaceInfluenceSlider = document.getElementById('surfaceInfluence');
             const emergenceRateRange = { outMin: 0.001, outMax: 0.05 }; const temporalFlowRange = { outMin: 0.002, outMax: 0.03 }; const surfaceInfluenceRange = { outMin: 0, outMax: 250 };    
             emergenceRateSlider.value = mapRange(PARAMS.STORM_SPAWN_PROBABILITY, emergenceRateRange.outMin, emergenceRateRange.outMax, 0, 100); temporalFlowSlider.value = mapRange(PARAMS.TIME_SCALE, temporalFlowRange.outMin, temporalFlowRange.outMax, 0, 100); surfaceInfluenceSlider.value = mapRange(PARAMS.MOUSE_FORCE_STRENGTH, surfaceInfluenceRange.outMin, surfaceInfluenceRange.outMax, 0, 100);
@@ -500,4 +605,3 @@
     </script>
 </body>
 </html>
-

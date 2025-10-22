@@ -4,12 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Throttle [Idle Mechanics]</title>
-    
+
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
-    
+
     <!-- REMOVIDO: Link para o arquivo de tema externo -->
     <!-- <link rel="stylesheet" href="idle-mechanics-theme.css"> -->
-    
+
     <style>
         /* ===========================================
          * ESTILOS COMPLETOS EMBUTIDOS (Baseado no tema)
@@ -17,20 +17,20 @@
 
         /* 1. Variáveis e Base */
         :root {
-          --im-color-primary: #ff0090;  
+          --im-color-primary: #ff0090;
           --im-color-secondary: #fff204;
-          --im-color-tertiary: #09ff00; 
-          --im-color-bg: #0D0D0D;       
-          --im-color-text: #BBBBBB;      
+          --im-color-tertiary: #09ff00;
+          --im-color-bg: #0D0D0D;
+          --im-color-text: #BBBBBB;
           --im-color-ui-bg: rgba(20, 20, 20, 0.7);
         }
 
         body {
             margin: 0;
             font-family: 'Inter', sans-serif;
-            background-color: var(--im-color-bg); 
+            background-color: var(--im-color-bg);
             color: var(--im-color-text);
-            overflow: hidden; 
+            overflow: hidden;
             min-height: 100vh;
         }
 
@@ -42,7 +42,7 @@
 
         /* --- Estilos de layout da simulação (Mantidos) --- */
         #dna-section {
-            height: 100vh;
+            height: 100%; /* Change vh to % for proper fullscreen scaling */
             width: 100%;
             position: relative;
             overflow: hidden;
@@ -57,7 +57,7 @@
             width: 100%;
             height: 100%;
         }
-        
+
         /* 2. Controles */
 
         /* Contêiner de Controles */
@@ -74,8 +74,8 @@
           -webkit-backdrop-filter: blur(5px);
           box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
           /* Força a visibilidade inicial */
-          opacity: 1 !important; 
-          visibility: visible !important; 
+          opacity: 1 !important;
+          visibility: visible !important;
         }
 
         /* IDs para posicionamento customizado */
@@ -118,8 +118,8 @@
           transform: scale(1.05);
         }
         .im-button.active { /* Para uso futuro se necessário */
-          background-color: rgba(187, 187, 187, 0.2); 
-          box-shadow: 0 0 12px 2px var(--im-color-text); 
+          background-color: rgba(187, 187, 187, 0.2);
+          box-shadow: 0 0 12px 2px var(--im-color-text);
           border-color: var(--im-color-text);
           color: var(--im-color-text);
         }
@@ -130,72 +130,72 @@
           appearance: none;
           background: transparent;
           cursor: pointer;
-          width: 75px; 
+          width: 75px;
           margin: 0;
-          display: inline-block !important; 
+          display: inline-block !important;
           visibility: visible !important;
         }
         .im-controls input[type="range"]::-webkit-slider-runnable-track {
-          background: rgba(187, 187, 187, 0.5); 
-          height: 4px; 
+          background: rgba(187, 187, 187, 0.5);
+          height: 4px;
           border-radius: 2px;
         }
         .im-controls input[type="range"]::-moz-range-track {
-           background: rgba(187, 187, 187, 0.5); 
-          height: 4px; 
+           background: rgba(187, 187, 187, 0.5);
+          height: 4px;
           border-radius: 2px;
         }
         .im-controls input[type="range"]::-webkit-slider-thumb {
           -webkit-appearance: none;
           appearance: none;
-          margin-top: -8px; 
-          background-color: var(--im-color-text); 
-          border: 2px solid var(--im-color-bg); 
-          height: 20px; 
-          width: 12px; 
-          border-radius: 3px; 
-          box-shadow: 0 0 5px 0 rgba(187, 187, 187, 0.5); 
-          transition: transform 0.1s ease, box-shadow 0.1s ease, background-color 0.1s ease;
-        }
-        .im-controls input[type="range"]::-moz-range-thumb {
-          background-color: var(--im-color-text); 
-          border: 2px solid var(--im-color-bg); 
+          margin-top: -8px;
+          background-color: var(--im-color-text);
+          border: 2px solid var(--im-color-bg);
           height: 20px;
           width: 12px;
           border-radius: 3px;
-          box-shadow: 0 0 5px 0 rgba(187, 187, 187, 0.5); 
+          box-shadow: 0 0 5px 0 rgba(187, 187, 187, 0.5);
+          transition: transform 0.1s ease, box-shadow 0.1s ease, background-color 0.1s ease;
+        }
+        .im-controls input[type="range"]::-moz-range-thumb {
+          background-color: var(--im-color-text);
+          border: 2px solid var(--im-color-bg);
+          height: 20px;
+          width: 12px;
+          border-radius: 3px;
+          box-shadow: 0 0 5px 0 rgba(187, 187, 187, 0.5);
           transition: transform 0.1s ease, box-shadow 0.1s ease, background-color 0.1s ease;
         }
         .im-controls input[type="range"]:hover::-webkit-slider-thumb {
           transform: scale(1.1);
-          background-color: var(--im-color-secondary); 
-          box-shadow: 0 0 8px 0 var(--im-color-secondary); 
+          background-color: var(--im-color-secondary);
+          box-shadow: 0 0 8px 0 var(--im-color-secondary);
         }
         .im-controls input[type="range"]:hover::-moz-range-thumb {
           transform: scale(1.1);
-           background-color: var(--im-color-secondary); 
-          box-shadow: 0 0 8px 0 var(--im-color-secondary); 
+           background-color: var(--im-color-secondary);
+          box-shadow: 0 0 8px 0 var(--im-color-secondary);
         }
 
         /* Classe de funcionalidade para esconder/mostrar controles (Mantida) */
         .controls-hidden {
             opacity: 0 !important; /* Usa !important para garantir */
             visibility: hidden !important; /* Usa !important para garantir */
-            pointer-events: none; 
+            pointer-events: none;
         }
     </style>
 </head>
 <body>
     <div id="dna-section">
         <canvas id="dna-sim-canvas"></canvas>
-        
+
         <!-- UI (HTML inalterado, mas agora estilizado por CSS embutido) -->
         <div id="controls-top-container" class="im-controls controls-hidden">
             <button id="phaseToggleButton" class="im-button" title="Toggle Animation Phase"></button>
             <button id="tunnelButton" class="im-button" title="Restart Tunneling"></button>
             <button id="exitDNASimButton" class="im-button" title="Exit Simulation"></button>
         </div>
-        
+
         <div id="controls-bottom-container" class="im-controls controls-hidden">
             <input type="range" id="speedSlider" min="0" max="100" value="50" title="Adjust Animation Speed">
             <input type="range" id="radiusSlider" min="10" max="80" value="30" title="Adjust Helix Radius">
@@ -206,69 +206,71 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 
     <script>
-        // --- JAVASCRIPT INALTERADO ---
         document.addEventListener('DOMContentLoaded', () => {
             let scene, camera, renderer, coreHelix;
-            let verticalDistanceOfHelix; 
-            let orbs = []; 
-            let tunnelButtonElement, phaseToggleButtonElement, speedSliderElement, radiusSliderElement, turnsSliderElement, exitDNASimButtonElement; 
-            let controlsTopElement, controlsBottomElement; 
-            
-            function initDNASimulation() { 
-                const dnaSimCanvas = document.getElementById('dna-sim-canvas'); 
+            let verticalDistanceOfHelix;
+            let orbs = [];
+            let tunnelButtonElement, phaseToggleButtonElement, speedSliderElement, radiusSliderElement, turnsSliderElement, exitDNASimButtonElement;
+            let controlsTopElement, controlsBottomElement;
+            const dnaSimCanvas = document.getElementById('dna-sim-canvas'); // Get canvas element early
+
+            function initDNASimulation() {
+                // Canvas já obtido acima
                 tunnelButtonElement = document.getElementById('tunnelButton');
                 phaseToggleButtonElement = document.getElementById('phaseToggleButton');
-                exitDNASimButtonElement = document.getElementById('exitDNASimButton'); 
-                speedSliderElement = document.getElementById('speedSlider'); 
-                radiusSliderElement = document.getElementById('radiusSlider'); 
-                turnsSliderElement = document.getElementById('turnsSlider');    
+                exitDNASimButtonElement = document.getElementById('exitDNASimButton');
+                speedSliderElement = document.getElementById('speedSlider');
+                radiusSliderElement = document.getElementById('radiusSlider');
+                turnsSliderElement = document.getElementById('turnsSlider');
                 controlsTopElement = document.getElementById('controls-top-container');
                 controlsBottomElement = document.getElementById('controls-bottom-container');
 
-                speedSliderElement.value = 50; 
-                radiusSliderElement.value = 45; 
-                turnsSliderElement.value = 28;  
+                speedSliderElement.value = 50;
+                radiusSliderElement.value = 45;
+                turnsSliderElement.value = 28;
 
                 currentSpeedMultiplier = MIN_SPEED_MULTIPLIER + (speedSliderElement.value / 100) * (MAX_SPEED_MULTIPLIER - MIN_SPEED_MULTIPLIER);
-                currentHelixRadius = parseInt(radiusSliderElement.value); 
-                currentHelixTurns = parseInt(turnsSliderElement.value);    
+                currentHelixRadius = parseInt(radiusSliderElement.value);
+                currentHelixTurns = parseInt(turnsSliderElement.value);
 
                 scene = new THREE.Scene();
-                scene.fog = new THREE.Fog(0x000000, 300, 800); 
-                camera = new THREE.PerspectiveCamera(75, dnaSimCanvas.clientWidth / dnaSimCanvas.clientHeight, 0.1, 2000); 
-                camera.position.set(0, 0, 250); 
-                camera.lookAt(0, 0, 0); 
-                renderer = new THREE.WebGLRenderer({ canvas: dnaSimCanvas, antialias: true }); 
-                renderer.setSize(dnaSimCanvas.clientWidth, dnaSimCanvas.clientHeight); 
-                renderer.setPixelRatio(window.devicePixelRatio); 
+                scene.fog = new THREE.Fog(0x000000, 300, 800);
+                // Use container dimensions directly for aspect ratio
+                camera = new THREE.PerspectiveCamera(75, dnaSimCanvas.parentElement.clientWidth / dnaSimCanvas.parentElement.clientHeight, 0.1, 2000);
+                camera.position.set(0, 0, 250);
+                camera.lookAt(0, 0, 0);
+                renderer = new THREE.WebGLRenderer({ canvas: dnaSimCanvas, antialias: true });
+                // Set initial size based on parent container
+                renderer.setSize(dnaSimCanvas.parentElement.clientWidth, dnaSimCanvas.parentElement.clientHeight);
+                renderer.setPixelRatio(window.devicePixelRatio);
                 const ambientLight = new THREE.AmbientLight(0xffffff, 0.1); scene.add(ambientLight);
                 const directionalLight = new THREE.DirectionalLight(0xffffff, 0.2); directionalLight.position.set(1, 1, 1); scene.add(directionalLight);
-                
+
                 // Definindo cores diretamente no JS
-                const ultravioletViolet = "#4A006F"; 
+                const ultravioletViolet = "#4A006F";
                 const solarYellow = "#FFEF00";
                 const electricCyan = "#00FFF7";
 
-                verticalDistanceOfHelix = (120 / 4) * currentHelixTurns * 1.0; 
+                verticalDistanceOfHelix = (120 / 4) * currentHelixTurns * 1.0;
                 coreHelix = createHelix(1.0, currentHelixRadius, currentHelixTurns, ultravioletViolet, solarYellow); scene.add(coreHelix);
-                const orbGeometry = new THREE.SphereGeometry(ORB_RADIUS, 16, 16); 
-                const orbBaseColor = new THREE.Color(electricCyan); 
+                const orbGeometry = new THREE.SphereGeometry(ORB_RADIUS, 16, 16);
+                const orbBaseColor = new THREE.Color(electricCyan);
                 for (let i = 0; i < NUM_ORBS; i++) {
                     const orbMaterial = new THREE.MeshBasicMaterial({ color: orbBaseColor, transparent: true, opacity: 0.8, blending: THREE.AdditiveBlending });
                     const orbMesh = new THREE.Mesh(orbGeometry, orbMaterial);
-                    const orbLight = new THREE.PointLight(orbBaseColor, 3, 150); 
+                    const orbLight = new THREE.PointLight(orbBaseColor, 3, 150);
                     const baseY = (i / (NUM_ORBS - 1)) * verticalDistanceOfHelix - (verticalDistanceOfHelix / 2);
                     orbMesh.position.set(0, baseY, 0); orbLight.position.copy(orbMesh.position);
                     scene.add(orbMesh); scene.add(orbLight);
                     orbs.push({ mesh: orbMesh, light: orbLight, baseY: baseY, oscillationOffset: Math.random() * Math.PI * 2 });
                 }
-                startTunneling(); addEventListenersDNASim(); 
+                startTunneling(); addEventListenersDNASim();
             }
 
             function createHelix(scale, helixRadius, helixTurns, color1, color2) {
-                const helix = new THREE.Group(); 
-                const radius = helixRadius * scale; const tubeRadius = 3 * scale; const turns = helixTurns; const pointsPerTurn = 16; const calculatedVerticalDistance = (120 / 4) * turns * scale; const totalPoints = pointsPerTurn * turns; 
-                const sphereGeometry = new THREE.SphereGeometry(tubeRadius, 8, 8); 
+                const helix = new THREE.Group();
+                const radius = helixRadius * scale; const tubeRadius = 3 * scale; const turns = helixTurns; const pointsPerTurn = 16; const calculatedVerticalDistance = (120 / 4) * turns * scale; const totalPoints = pointsPerTurn * turns;
+                const sphereGeometry = new THREE.SphereGeometry(tubeRadius, 8, 8);
                 const material1 = new THREE.MeshPhongMaterial({ color: new THREE.Color(color1), emissive: new THREE.Color(color1), emissiveIntensity: 0.9 });
                 const material2 = new THREE.MeshPhongMaterial({ color: new THREE.Color(color2), emissive: new THREE.Color(color2), emissiveIntensity: 0.9 });
                 const rungMaterial = new THREE.LineBasicMaterial({ color: 0xeeeeee, transparent: true, opacity: 0.4 });
@@ -279,15 +281,15 @@
                     const points = [sphere1.position.clone(), sphere2.position.clone()]; const rungGeometry = new THREE.BufferGeometry().setFromPoints(points); const rung = new THREE.Line(rungGeometry, rungMaterial); helix.add(rung);
                 } return helix;
             }
-             
-            const animationPhases = [ { id: 1, rotationSpeedY: 0.002, rotationSpeedX: 0.0004, duration: 8000 }, { id: 2, rotationSpeedY: -0.003, rotationSpeedX: 0.0002, duration: 8000 }, { id: 3, rotationSpeedY: 0.001, rotationSpeedX: -0.0005, duration: 8000 }, { id: 4, rotationSpeedY: 0.004, rotationSpeedX: 0, duration: 8000 }, { id: 5, rotationSpeedY: 0, rotationSpeedX: 0.0006, duration: 8000 }, { id: 6, rotationSpeedY: -0.002, rotationSpeedX: -0.0004, duration: 8000 }, { id: 7, rotationSpeedY: 0.003, rotationSpeedX: -0.0002, duration: 8000 }, { id: 8, rotationSpeedY: -0.001, rotationSpeedX: 0.0005, duration: 8000 }, { id: 9, rotationSpeedY: -0.004, rotationSpeedX: 0, duration: 8000 }, { id: 10, rotationSpeedY: 0, rotationSpeedX: -0.0006, duration: 8000 } ];
-            let currentPhaseIndex = 0; let phaseTimer = 0; let lastFrameTime = 0; 
-            const MIN_SPEED_MULTIPLIER = 0.5; const MAX_SPEED_MULTIPLIER = 1.5; let currentSpeedMultiplier = 1.0; 
-            let currentHelixRadius = 30; let currentHelixTurns = 25;  
-            let isMouseDown = false; let previousMousePosition = { x: 0, y: 0 }; let isTunneling = false; const BASE_TUNNELING_SPEED = 0.8; let initialTunnelComplete = false; 
-            const NUM_ORBS = 7; const ORB_RADIUS = 4; const ORB_OSCILLATION_RANGE = 40; const ORB_OSCILLATION_SPEED_BASE = 0.0005; 
 
-            function animateDNASim() { 
+            const animationPhases = [ { id: 1, rotationSpeedY: 0.002, rotationSpeedX: 0.0004, duration: 8000 }, { id: 2, rotationSpeedY: -0.003, rotationSpeedX: 0.0002, duration: 8000 }, { id: 3, rotationSpeedY: 0.001, rotationSpeedX: -0.0005, duration: 8000 }, { id: 4, rotationSpeedY: 0.004, rotationSpeedX: 0, duration: 8000 }, { id: 5, rotationSpeedY: 0, rotationSpeedX: 0.0006, duration: 8000 }, { id: 6, rotationSpeedY: -0.002, rotationSpeedX: -0.0004, duration: 8000 }, { id: 7, rotationSpeedY: 0.003, rotationSpeedX: -0.0002, duration: 8000 }, { id: 8, rotationSpeedY: -0.001, rotationSpeedX: 0.0005, duration: 8000 }, { id: 9, rotationSpeedY: -0.004, rotationSpeedX: 0, duration: 8000 }, { id: 10, rotationSpeedY: 0, rotationSpeedX: -0.0006, duration: 8000 } ];
+            let currentPhaseIndex = 0; let phaseTimer = 0; let lastFrameTime = 0;
+            const MIN_SPEED_MULTIPLIER = 0.5; const MAX_SPEED_MULTIPLIER = 1.5; let currentSpeedMultiplier = 1.0;
+            let currentHelixRadius = 30; let currentHelixTurns = 25;
+            let isMouseDown = false; let previousMousePosition = { x: 0, y: 0 }; let isTunneling = false; const BASE_TUNNELING_SPEED = 0.8; let initialTunnelComplete = false;
+            const NUM_ORBS = 7; const ORB_RADIUS = 4; const ORB_OSCILLATION_RANGE = 40; const ORB_OSCILLATION_SPEED_BASE = 0.0005;
+
+            function animateDNASim() {
                 requestAnimationFrame(animateDNASim);
                 if (!lastFrameTime) lastFrameTime = performance.now(); const deltaTime = performance.now() - lastFrameTime; lastFrameTime = performance.now();
                 orbs.forEach(orbData => {
@@ -296,24 +298,42 @@
                 if (isTunneling) {
                     camera.position.y += BASE_TUNNELING_SPEED * currentSpeedMultiplier;
                     if (camera.position.y > verticalDistanceOfHelix / 2 + 50) { isTunneling = false; initialTunnelComplete = true; camera.position.y = 0; camera.position.z = 250; coreHelix.rotation.set(0, 0, 0); if (controlsTopElement) controlsTopElement.classList.remove('controls-hidden'); if (controlsBottomElement) controlsBottomElement.classList.remove('controls-hidden'); }
-                    camera.lookAt(new THREE.Vector3(0, camera.position.y + 100, 0)); 
+                    camera.lookAt(new THREE.Vector3(0, camera.position.y + 100, 0));
                 } else {
                     if (!isMouseDown) { const currentPhase = animationPhases[currentPhaseIndex]; coreHelix.rotation.y += currentPhase.rotationSpeedY * currentSpeedMultiplier * (deltaTime / 16.6667); coreHelix.rotation.x += currentPhase.rotationSpeedX * currentSpeedMultiplier * (deltaTime / 16.6667); phaseTimer += deltaTime;
                         if (phaseTimer >= currentPhase.duration) { currentPhaseIndex = (currentPhaseIndex + 1) % animationPhases.length; phaseTimer = 0; }
                     }
-                } renderer.render(scene, camera); 
+                } renderer.render(scene, camera);
             }
 
-            function addEventListenersDNASim() { 
-                const dnaSimCanvas = document.getElementById('dna-sim-canvas');
-                window.addEventListener('resize', onWindowResizeDNASim, false); dnaSimCanvas.addEventListener('mousedown', onMouseDown, false); dnaSimCanvas.addEventListener('mousemove', onMouseMove, false); window.addEventListener('mouseup', onMouseUp, false); dnaSimCanvas.addEventListener('wheel', onMouseWheel, { passive: false }); 
-                tunnelButtonElement.addEventListener('click', startTunneling); phaseToggleButtonElement.addEventListener('click', toggleAnimationPhase); speedSliderElement.addEventListener('input', updateSpeedMultiplier); radiusSliderElement.addEventListener('input', updateHelixParameters); turnsSliderElement.addEventListener('input', updateHelixParameters);    
-                exitDNASimButtonElement.addEventListener('click', () => { console.log("Exit button clicked."); }); 
+            function addEventListenersDNASim() {
+                // Canvas já obtido
+                window.addEventListener('resize', onWindowResizeDNASim, false);
+                // Listener para fullscreenchange (adicionado)
+                document.addEventListener('fullscreenchange', onWindowResizeDNASim, false);
+
+                dnaSimCanvas.addEventListener('mousedown', onMouseDown, false);
+                dnaSimCanvas.addEventListener('mousemove', onMouseMove, false);
+                window.addEventListener('mouseup', onMouseUp, false);
+                dnaSimCanvas.addEventListener('wheel', onMouseWheel, { passive: false });
+                tunnelButtonElement.addEventListener('click', startTunneling);
+                phaseToggleButtonElement.addEventListener('click', toggleAnimationPhase);
+                speedSliderElement.addEventListener('input', updateSpeedMultiplier);
+                radiusSliderElement.addEventListener('input', updateHelixParameters);
+                turnsSliderElement.addEventListener('input', updateHelixParameters);
+                exitDNASimButtonElement.addEventListener('click', () => { console.log("Exit button clicked."); });
             }
 
-            function onWindowResizeDNASim() { 
-                const dnaSimCanvas = document.getElementById('dna-sim-canvas');
-                if (dnaSimCanvas) { camera.aspect = dnaSimCanvas.clientWidth / dnaSimCanvas.clientHeight; camera.updateProjectionMatrix(); renderer.setSize(dnaSimCanvas.clientWidth, dnaSimCanvas.clientHeight); }
+            function onWindowResizeDNASim() {
+                // Canvas já obtido
+                if (dnaSimCanvas && renderer && camera) {
+                    // Use parentElement dimensions for correct sizing, especially in fullscreen
+                    const width = dnaSimCanvas.parentElement.clientWidth;
+                    const height = dnaSimCanvas.parentElement.clientHeight;
+                    camera.aspect = width / height;
+                    camera.updateProjectionMatrix();
+                    renderer.setSize(width, height);
+                }
             }
             function onMouseDown(event) { if (isTunneling) return; isMouseDown = true; previousMousePosition.x = event.clientX; previousMousePosition.y = event.clientY; }
             function onMouseMove(event) {
@@ -322,7 +342,7 @@
             function onMouseUp() { if (isTunneling) return; isMouseDown = false; }
             function onMouseWheel(event) { if (isTunneling) return; event.preventDefault(); camera.position.z -= event.deltaY * 0.1; }
             function startTunneling() {
-                isTunneling = true; 
+                isTunneling = true;
                 if (initialTunnelComplete) { if (controlsTopElement) controlsTopElement.classList.add('controls-hidden'); if (controlsBottomElement) controlsBottomElement.classList.add('controls-hidden'); }
                 camera.position.y = -verticalDistanceOfHelix / 2 + 10; camera.position.z = 5; coreHelix.rotation.set(0, 0, 0); currentPhaseIndex = 0; phaseTimer = 0;
             }
@@ -332,11 +352,12 @@
                 const ultravioletViolet = "#4A006F"; const solarYellow = "#FFEF00";
                 currentHelixRadius = parseInt(radiusSliderElement.value); currentHelixTurns = parseInt(turnsSliderElement.value);
                 if (coreHelix) { scene.remove(coreHelix); }
-                verticalDistanceOfHelix = (120 / 4) * currentHelixTurns * 1.0; 
+                verticalDistanceOfHelix = (120 / 4) * currentHelixTurns * 1.0;
                 coreHelix = createHelix(1.0, currentHelixRadius, currentHelixTurns, ultravioletViolet, solarYellow); scene.add(coreHelix);
                 orbs.forEach((orbData, i) => { const newBaseY = (i / (NUM_ORBS - 1)) * verticalDistanceOfHelix - (verticalDistanceOfHelix / 2); orbData.baseY = newBaseY; orbData.mesh.position.y = newBaseY + Math.sin(performance.now() * ORB_OSCILLATION_SPEED_BASE + orbData.oscillationOffset) * ORB_OSCILLATION_RANGE; orbData.light.position.copy(orbData.mesh.position); });
             }
 
+            // --- SCRIPT EXECUTION ---
             initDNASimulation();
             animateDNASim();
         });
