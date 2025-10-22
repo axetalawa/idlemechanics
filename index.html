@@ -1,61 +1,197 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Idle Mechanics</title>
+  <title>Mecânica Ociosa</title>
   <link rel="stylesheet" href="assets/css/idlemechanics.css" />
+  <style>
+    /* STYLES FOR THE LANGUAGE TOGGLE
+      (You can move this to your 'idlemechanics.css' file if you prefer)
+    */
+    .lang-toggle-container {
+      position: fixed;
+      /* Adjust position to match your main site's style */
+      top: 1.5rem; /* 24px */
+      right: 1.5rem; /* 24px */
+      z-index: 100;
+    }
+    .lang-toggle {
+      display: flex;
+      align-items: center;
+      font-size: 0.875rem; /* 14px */
+      font-weight: 500;
+      /* Using a common sans-serif. Update if you import 'Inter' here. */
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; 
+      background-color: rgba(0, 0, 0, 0.2);
+      border: 1px solid #4B5563; /* approx. border-gray-700 */
+      border-radius: 9999px; /* rounded-full */
+      padding: 0.25rem; /* p-1 */
+      color: #9CA3AF; /* approx. text-gray-400 */
+    }
+    .lang-toggle button {
+      font-family: inherit;
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 0.25rem 0.75rem; /* px-3 py-1 */
+      border-radius: 9999px; /* rounded-full */
+      transition: color 0.3s, background-color 0.3s;
+      color: inherit;
+    }
+    .lang-toggle button.active {
+      color: #ffffff;
+      background-color: rgba(255, 255, 255, 0.1);
+    }
+  </style>
 </head>
 <body>
 
   <div id="landing-skin">
-    <div class="landing-card">
 
-      <!-- Face 1: Main Title -->
+    <div class="lang-toggle-container">
+      <div class="lang-toggle">
+        <button id="lang-pt">PT</button>
+        <button id="lang-en">EN</button>
+      </div>
+    </div>
+
+    <div class="landing-card">
       <div class="card-face face-main">
         <div class="card-content">
           <h1>Idle Mechanics</h1>
-          <p>A workshop for useless beauty.</p>
-          <p>Architectures of attention.</p>
-          <p>Systems that think by not working.</p>
+          <p id="main-p1"></p>
+          <p id="main-p2"></p>
+          <p id="main-p3"></p>
         </div>
-        <button class="info-toggle" aria-label="More Information">i</button>
+        <button class="info-toggle" id="info-toggle-btn" aria-label="Mais Informações">i</button>
       </div>
 
-      <!-- Face 2: Info Card (with updated "essay style" text) -->
       <div class="card-face face-info">
-        <button class="info-close" aria-label="Close">×</button>
+        <button class="info-close" id="info-close-btn" aria-label="Fechar">×</button>
         <div class="info-content">
-          <!-- 
-            MODIFIED CONTENT: 
-            Split the title and description as requested.
-          -->
           <h2>Idle Mechanics</h2>
-          <p class="subtitle">A studio for useless beauty and recursive attention.</p>
-          <!-- 
-            REWRITTEN CONTENT: 
-            Combined the previous short paragraphs into a more flowing "essay style" text. 
-          -->
-          <p>
-            Idle Mechanics is the workshop where all productive logic breaks down into pattern. It is the laboratory of the inoperative — a digital atelier devoted to useless elegance, recursive movement, and non-linguistic cognition. Each prototype begins as code but ends as atmosphere: loops that shimmer, geometries that breathe, and simulations that do nothing but hold attention until it changes shape.
-          </p>
-          <p>
-            The name is deliberate. To be idle here is not to rest, but to listen; it is to let perception rediscover its own rhythm. To be mechanical is not to be automatic, but to participate in the choreography of repetition. These prototypes are not art objects or software products; they are acts of reanimation — machines remembering that they were once rituals.
-          </p>
-          <p>
-            Idle Mechanics exists for the cognition that modern tools forgot: thought as motion, awareness as medium, and beauty as an event. It is a site for seeing what emerges when function is suspended and form begins to dream.
-          </p>
-          
+          <p class="subtitle" id="info-subtitle"></p>
+          <p id="info-p1"></p>
+          <p id="info-p2"></p>
+          <p id="info-p3"></p>
         </div>
       </div>
-
     </div>
   </div>
 
-  <!-- Existing Simulation Viewer -->
   <main id="viewer"></main>
   
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      
+      // 1. --- Translation Content ---
+      const translations = {
+        pt: {
+          docTitle: 'Mecânica Ociosa',
+          infoLabel: 'Mais Informações',
+          closeLabel: 'Fechar',
+          faceMain: {
+            p1: 'Uma oficina para a beleza inútil.',
+            p2: 'Arquiteturas da atenção.',
+            p3: 'Sistemas que pensam por não funcionar.'
+          },
+          faceInfo: {
+            subtitle: 'Um estúdio para a beleza inútil e atenção recursiva.',
+            p1: 'Mecânica Ociosa é a oficina onde toda lógica produtiva se desfaz em padrão. É o laboratório do inoperante — um ateliê digital dedicado à elegância inútil, ao movimento recursivo e à cognição não-linguística. Cada protótipo começa como código, mas termina como atmosfera: loops que cintilam, geometrias que respiram e simulações que não fazem nada além de prender a atenção até que ela mude de forma.',
+            p2: 'O nome é deliberado. Estar ocioso aqui não é descansar, mas escutar; é permitir que a percepção redescubra seu próprio ritmo. Ser mecânico não é ser automático, mas participar da coreografia da repetição. Estes protótipos não são objetos de arte ou produtos de software; são atos de reanimação — máquinas lembrando que um dia foram rituais.',
+            p3: 'A Mecânica Ociosa existe para a cognição que as ferramentas modernas esqueceram: o pensamento como movimento, a consciência como meio e a beleza como um evento. É um local para ver o que emerge quando a função é suspensa e a forma começa a sonhar.'
+          }
+        },
+        en: {
+          docTitle: 'Idle Mechanics',
+          infoLabel: 'More Information',
+          closeLabel: 'Close',
+          faceMain: {
+            p1: 'A workshop for useless beauty.',
+            p2: 'Architectures of attention.',
+            p3: 'Systems that think by not working.'
+          },
+          faceInfo: {
+            subtitle: 'A studio for useless beauty and recursive attention.',
+            p1: 'Idle Mechanics is the workshop where all productive logic breaks down into pattern. It is the laboratory of the inoperative — a digital atelier devoted to useless elegance, recursive movement, and non-linguistic cognition. Each prototype begins as code but ends as atmosphere: loops that shimmer, geometries that breathe, and simulations that do nothing but hold attention until it changes shape.',
+            p2: 'The name is deliberate. To be idle here is not to rest, but to listen; it is to let perception rediscover its own rhythm. To be mechanical is not to be automatic, but to participate in the choreography of repetition. These prototypes are not art objects or software products; they are acts of reanimation — machines remembering that they were once rituals.',
+            p3: 'Idle Mechanics exists for the cognition that modern tools forgot: thought as motion, awareness as medium, and beauty as an event. It is a site for seeing what emerges when function is suspended and form begins to dream.'
+          }
+        }
+      };
+
+      // 2. --- Element References ---
+      const btnPt = document.getElementById('lang-pt');
+      const btnEn = document.getElementById('lang-en');
+      
+      const docTitle = document.querySelector('title');
+      const htmlTag = document.documentElement;
+      const infoToggleBtn = document.getElementById('info-toggle-btn');
+      const infoCloseBtn = document.getElementById('info-close-btn');
+      
+      const mainP1 = document.getElementById('main-p1');
+      const mainP2 = document.getElementById('main-p2');
+      const mainP3 = document.getElementById('main-p3');
+      
+      const infoSubtitle = document.getElementById('info-subtitle');
+      const infoP1 = document.getElementById('info-p1');
+      const infoP2 = document.getElementById('info-p2');
+      const infoP3 = document.getElementById('info-p3');
+
+      // 3. --- Language Logic ---
+      function setLanguage(lang) {
+        if (lang !== 'en' && lang !== 'pt') {
+          lang = 'pt';
+        }
+        
+        const content = translations[lang];
+        
+        htmlTag.lang = (lang === 'pt') ? 'pt-BR' : 'en';
+        docTitle.textContent = content.docTitle;
+        
+        btnPt.classList.toggle('active', lang === 'pt');
+        btnEn.classList.toggle('active', lang === 'en');
+        
+        infoToggleBtn.setAttribute('aria-label', content.infoLabel);
+        infoCloseBtn.setAttribute('aria-label', content.closeLabel);
+        
+        mainP1.textContent = content.faceMain.p1;
+        mainP2.textContent = content.faceMain.p2;
+        mainP3.textContent = content.faceMain.p3;
+        
+        infoSubtitle.textContent = content.faceInfo.subtitle;
+        infoP1.textContent = content.faceInfo.p1;
+        infoP2.textContent = content.faceInfo.p2;
+        infoP3.textContent = content.faceInfo.p3;
+        
+        // --- THIS IS THE KEY PART ---
+        // Save the user's choice to localStorage
+        try {
+          localStorage.setItem('userLanguage', lang);
+        } catch (e) {
+          console.warn('Could not save language preference.', e);
+        }
+      }
+
+      // 4. --- Initialization ---
+      btnPt.addEventListener('click', () => setLanguage('pt'));
+      btnEn.addEventListener('click', () => setLanguage('en'));
+      
+      let initialLang = 'pt'; // Default to Portuguese
+      try {
+        const savedLang = localStorage.getItem('userLanguage');
+        if (savedLang === 'en' || savedLang === 'pt') {
+          initialLang = savedLang; // Use saved language if valid
+        }
+      } catch (e) {
+        console.warn('Could not read language preference.', e);
+      }
+      
+      setLanguage(initialLang);
+
+    });
+  </script>
   <script type="module" src="assets/js/main.js"></script>
 </body>
 </html>
-

@@ -7,7 +7,53 @@ async function loadManifest() {
 }
 
 /**
- * NEW: Adds event listeners for the landing page.
+ * Gets the saved language from localStorage.
+ * Defaults to 'pt'.
+ */
+function getSavedLanguage() {
+  try {
+    const savedLang = localStorage.getItem('userLanguage');
+    if (savedLang === 'en' || savedLang === 'pt') {
+      return savedLang;
+    }
+  } catch (e) {
+    console.warn('Could not read language preference.');
+  }
+  return 'pt'; // Default language
+}
+
+/**
+ * Translates category and set names based on the language.
+ */
+function translateLabel(lang, categoryName, setName) {
+  const translations = {
+    pt: {
+      GEOMETRY: "GEOMETRIA",
+      ARCHIMIDEAN: "ARQUIMEDIANA",
+      // Add other Portuguese translations here
+      // "SET_NAME": "NOME DO SET",
+    },
+    en: {
+      GEOMETRY: "GEOMETRY",
+      ARCHIMEDEAN: "ARCHIMIDEAN",
+      // Add other English translations here
+      // "SET_NAME": "SET_NAME",
+    }
+  };
+
+  const catUpper = categoryName.toUpperCase();
+  const setUpper = setName.toUpperCase();
+
+  // Look up the translation, fall back to the original uppercase name if not found
+  const translatedCat = translations[lang][catUpper] || catUpper;
+  const translatedSet = translations[lang][setUpper] || setUpper;
+
+  return `${translatedCat} • ${translatedSet}`;
+}
+
+
+/**
+ * Adds event listeners for the landing page.
  */
 function initLandingSkin() {
   const landingSkin = document.getElementById("landing-skin");
@@ -46,6 +92,9 @@ async function initViewer() {
     const data = await loadManifest();
     const viewer = document.getElementById("viewer");
 
+    // MODIFIED: Get the saved language
+    const lang = getSavedLanguage();
+
     for (const [index, category] of data.categories.entries()) { // Use .entries() to get index
       const section = document.createElement("section");
       section.className = "simulation-section";
@@ -53,8 +102,10 @@ async function initViewer() {
       // Label: category • set
       const label = document.createElement("div");
       label.className = "sim-label";
+
+      // MODIFIED: Use translation function
       let activeSetName = category.sets[0]?.name || "";
-      label.textContent = `${category.name.toUpperCase()} • ${activeSetName.toUpperCase()}`;
+      label.textContent = translateLabel(lang, category.name, activeSetName);
       section.appendChild(label);
 
       // Horizontal track for all sets
@@ -76,7 +127,10 @@ async function initViewer() {
         }
 
         wrapper.appendChild(iframe);
-        addFullscreenControl(section, wrapper);
+        
+        // MODIFIED: Pass the language to the fullscreen control
+        addFullscreenControl(section, wrapper, lang);
+
         slide.appendChild(wrapper);
         track.appendChild(slide);
       }
@@ -106,8 +160,10 @@ async function initViewer() {
         function updateView() {
           const offset = -(currentIndex * slideWidthPx());
           track.style.transform = `translateX(${offset}px)`;
+          
+          // MODIFIED: Use translation function
           const setName = category.sets[currentIndex]?.name || "";
-          label.textContent = `${category.name.toUpperCase()} • ${setName.toUpperCase()}`;
+          label.textContent = translateLabel(lang, category.name, setName);
         }
 
         // Prevent wall-bounce with instant jump
