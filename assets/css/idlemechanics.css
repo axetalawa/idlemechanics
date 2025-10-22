@@ -1,5 +1,5 @@
 /*─────────────────────────────*/
-/*  RESET & BASE STYLES */
+/* RESET & BASE STYLES */
 /*─────────────────────────────*/
 * {
   margin: 0;
@@ -17,8 +17,13 @@ html, body {
   scroll-behavior: smooth;
 }
 
+/* Lock body scrolling when a frame is in fullscreen */
+body.body-fullscreen-lock {
+  overflow: hidden;
+}
+
 /*─────────────────────────────*/
-/*  VIEWER STACK & LAYOUT */
+/* VIEWER STACK & LAYOUT */
 /*─────────────────────────────*/
 #viewer {
   display: flex;
@@ -30,7 +35,7 @@ html, body {
 }
 
 /*─────────────────────────────*/
-/*  EACH SIMULATION SECTION */
+/* EACH SIMULATION SECTION */
 /*─────────────────────────────*/
 section.simulation-section {
   position: relative;
@@ -45,7 +50,7 @@ section.simulation-section {
 }
 
 /*─────────────────────────────*/
-/*  INTERLUDE SPACING BETWEEN SECTIONS */
+/* INTERLUDE SPACING BETWEEN SECTIONS */
 /*─────────────────────────────*/
 .interlude {
   width: 100%;
@@ -54,7 +59,7 @@ section.simulation-section {
 }
 
 /*─────────────────────────────*/
-/*  HORIZONTAL SLIDE TRACK (MULTI-SIM SETS) */
+/* HORIZONTAL SLIDE TRACK (MULTI-SIM SETS) */
 /*─────────────────────────────*/
 .simulation-track {
   display: flex;
@@ -75,7 +80,7 @@ section.simulation-section {
 }
 
 /*─────────────────────────────*/
-/*  CONTAINED SIMULATION FRAME (PORTAL) */
+/* CONTAINED SIMULATION FRAME (PORTAL) */
 /*─────────────────────────────*/
 .sim-frame-wrapper {
   position: relative;
@@ -105,7 +110,7 @@ iframe.sim-frame {
 }
 
 /*─────────────────────────────*/
-/*  FULLSCREEN TOGGLE */
+/* FULLSCREEN TOGGLE */
 /*─────────────────────────────*/
 .fullscreen-toggle {
   position: absolute;
@@ -124,7 +129,7 @@ iframe.sim-frame {
 }
 
 /*─────────────────────────────*/
-/*  LABEL OVERLAY */
+/* LABEL OVERLAY */
 /*─────────────────────────────*/
 .sim-label {
   position: absolute;
@@ -179,7 +184,7 @@ section.simulation-section:hover .arrow {
 }
 
 /*─────────────────────────────*/
-/*  FULLSCREEN STATE TRANSITION */
+/* FULLSCREEN STATE TRANSITION */
 /*─────────────────────────────*/
 :fullscreen .sim-frame-wrapper,
 .simulation-section:fullscreen .sim-frame-wrapper {
@@ -191,7 +196,7 @@ section.simulation-section:hover .arrow {
 }
 
 /*─────────────────────────────*/
-/*  RESPONSIVE TWEAKS */
+/* RESPONSIVE TWEAKS */
 /*─────────────────────────────*/
 @media (max-width: 768px) {
   .sim-frame-wrapper {
@@ -244,4 +249,177 @@ section.simulation-section:hover .arrow {
 .sim-frame-wrapper.fullscreen-active iframe.sim-frame {
   width: 100%;
   height: 100%;
+}
+
+/*─────────────────────────────*/
+/* LANDING PAGE SKIN */
+/*─────────────────────────────*/
+#landing-skin {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  transition: opacity 0.8s ease;
+}
+
+#landing-skin.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.landing-card {
+  /* Match the sim-frame-wrapper */
+  width: 70vw;
+  height: 70vh;
+  border-radius: 8px;
+  background: #000;
+  box-shadow: 0 0 60px rgba(255, 255, 255, 0.05);
+  
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+  transition: box-shadow 0.5s ease;
+}
+
+.landing-card:hover {
+  box-shadow: 0 0 80px rgba(255, 255, 255, 0.08);
+}
+
+.card-face {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  padding: 3rem 3.5rem;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+/* Face 1: Main Title */
+.face-main {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.face-main h1 {
+  font-size: 1.5rem;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: #fff;
+  margin-bottom: 2.5rem;
+}
+.face-main p {
+  font-size: 1rem;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+/* Face 2: Info Card */
+.face-info {
+  display: none; /* Hidden by default */
+  flex-direction: column;
+  cursor: default;
+}
+
+.info-content {
+  overflow-y: auto;
+  flex-grow: 1;
+  padding-right: 1rem; /* for scrollbar */
+}
+
+.info-content h2 {
+  font-size: 1.1rem;
+  color: #fff;
+  margin-bottom: 0.5rem;
+}
+.info-content .subtitle {
+  font-size: 1rem;
+  color: rgba(255, 255, 255, 0.6);
+  font-style: italic;
+}
+.info-content hr {
+  border: none;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  margin: 1.5rem 0;
+}
+.info-content p {
+  font-size: 0.9rem;
+  line-height: 1.7;
+  color: rgba(255, 255, 255, 0.6);
+  margin-bottom: 1.2em;
+}
+
+/* Info Card State Toggle */
+.landing-card.info-active .face-main {
+  display: none;
+}
+.landing-card.info-active .face-info {
+  display: flex;
+}
+.landing-card.info-active {
+  cursor: default;
+}
+
+
+/* Info & Close Buttons */
+.info-toggle {
+  position: absolute;
+  bottom: 1rem;
+  right: 1rem;
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  font-size: 1rem;
+  font-family: serif;
+  font-weight: bold;
+  color: rgba(255, 255, 255, 0.4);
+  cursor: pointer;
+  transition: background 0.3s ease, color 0.3s ease;
+}
+.info-toggle:hover {
+  background: rgba(255, 255, 255, 0.25);
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.info-close {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: none;
+  border: none;
+  font-size: 1.75rem;
+  color: rgba(255, 255, 255, 0.3);
+  cursor: pointer;
+  transition: color 0.3s ease;
+  line-height: 1;
+}
+.info-close:hover {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+/* Responsive for Card Content */
+@media (max-width: 768px) {
+  .card-face {
+    padding: 2rem 2.5rem;
+  }
+  .face-main h1 {
+    font-size: 1.2rem;
+  }
+  .face-main p {
+    font-size: 0.9rem;
+  }
+  .info-content h2 {
+    font-size: 1rem;
+  }
+  .info-content p {
+    font-size: 0.85rem;
+  }
 }

@@ -6,7 +6,42 @@ async function loadManifest() {
   return await res.json();
 }
 
-async function init() {
+/**
+ * NEW: Adds event listeners for the landing page.
+ */
+function initLandingSkin() {
+  const landingSkin = document.getElementById("landing-skin");
+  const landingCard = document.querySelector(".landing-card");
+  const infoToggleBtn = document.querySelector(".info-toggle");
+  const infoCloseBtn = document.querySelector(".info-close");
+
+  if (!landingSkin || !landingCard || !infoToggleBtn || !infoCloseBtn) {
+    console.warn("Landing skin elements not found. Skipping.");
+    return;
+  }
+
+  // 1. Click card to enter site
+  landingCard.addEventListener("click", () => {
+    // Only hide if the info card is NOT active
+    if (!landingCard.classList.contains("info-active")) {
+      landingSkin.classList.add("hidden");
+    }
+  });
+
+  // 2. Click info button to show info
+  infoToggleBtn.addEventListener("click", (e) => {
+    e.stopPropagation(); // Don't trigger the card click
+    landingCard.classList.add("info-active");
+  });
+
+  // 3. Click close button to hide info
+  infoCloseBtn.addEventListener("click", (e) => {
+    e.stopPropagation(); // Don't trigger the card click
+    landingCard.classList.remove("info-active");
+  });
+}
+
+async function initViewer() {
   try {
     const data = await loadManifest();
     const viewer = document.getElementById("viewer");
@@ -130,4 +165,8 @@ async function init() {
   }
 }
 
-document.addEventListener("DOMContentLoaded", init);
+// Updated DOMContentLoaded listener
+document.addEventListener("DOMContentLoaded", () => {
+  initLandingSkin(); // Initialize the landing page logic
+  initViewer(); // Initialize the simulation viewer logic
+});

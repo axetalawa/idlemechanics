@@ -13,11 +13,13 @@ export function addFullscreenControl(section, wrapper) {
       if (!document.fullscreenElement) {
         await target.requestFullscreen({ navigationUI: "hide" });
         target.classList.add("fullscreen-active");
+        document.body.classList.add("body-fullscreen-lock"); // <-- MODIFIED
       } else {
         await document.exitFullscreen();
         document.querySelectorAll(".fullscreen-active").forEach(el => {
           el.classList.remove("fullscreen-active");
         });
+        document.body.classList.remove("body-fullscreen-lock"); // <-- MODIFIED
       }
     } catch (err) {
       console.error("Fullscreen error:", err);
@@ -28,6 +30,7 @@ export function addFullscreenControl(section, wrapper) {
   document.addEventListener("fullscreenchange", () => {
     if (!document.fullscreenElement) {
       wrapper.classList.remove("fullscreen-active");
+      document.body.classList.remove("body-fullscreen-lock"); // <-- MODIFIED
     }
   });
 }
