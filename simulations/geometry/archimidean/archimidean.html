@@ -3,23 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Archimedean Spiral</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+    <!-- Título Atualizado -->
+    <title>Archimedean Spiral [Idle Mechanics]</title>
+    
+    <!-- Fonte e Tema CSS -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="idle-mechanics-theme.css">
+
     <style>
-        :root {
-          --dark-bg: #0D0D0D;
-          --light-text: #BBBBBB;
-          --primary-glyph-color: #FF1E8E;
-          --electric-cyan: #00FFF7;
-        }
-        body {
-            font-family: 'Orbitron', sans-serif;
-            background-color: var(--dark-bg);
-            color: var(--light-text);
-            margin: 0;
-            overflow: hidden; /* Hide scrollbars */
-        }
+        /* Estilos essenciais mantidos */
         .spiral-window {
             height: 100vh;
             width: 100vw;
@@ -32,6 +26,10 @@
             width: 100vw;
             height: 100vh;
             animation: spin 30s linear infinite;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 1;
         }
         .spiral-path {
             stroke: url(#gradient);
@@ -41,54 +39,51 @@
             from { transform: rotate(0deg); }
             to { transform: rotate(360deg); }
         }
-        #mode-toggle {
-            position: fixed;
-            top: 2rem; /* Moved from bottom */
-            right: 2rem;
-            background-color: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            width: 44px;
-            height: 44px;
-            border-radius: 50%;
-            cursor: pointer;
-            z-index: 10;
-            transition: background-color 0.3s ease;
-        }
-        #mode-toggle:hover {
-            background-color: rgba(255, 255, 255, 0.2);
-        }
-        #mode-toggle.active {
-            background-color: rgba(255, 30, 142, 0.4);
+         
+        /* Wrapper para o botão */
+        .button-wrapper {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            z-index: 100;
         }
     </style>
 </head>
-<body class="antialiased">
+<body> 
 
-    <!-- SVG definition for the gradient -->
+    <!-- Definição SVG para o gradiente -->
     <svg width="0" height="0" style="position:absolute;">
         <defs>
             <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" style="stop-color:var(--electric-cyan); stop-opacity:1" />
-                <stop offset="100%" style="stop-color:var(--primary-glyph-color); stop-opacity:1" />
+                <!-- 
+                  CORRIGIDO: Cores embutidas (hard-coded) para garantir que o SVG as renderize, 
+                  em vez de depender de variáveis CSS externas.
+                -->
+                 <stop offset="0%" style="stop-color: #fff204; stop-opacity:1" /> <!-- Amarelo -->
+                 <stop offset="100%" style="stop-color: #ff0090; stop-opacity:1" /> <!-- Rosa -->
             </linearGradient>
         </defs>
     </svg>
 
     <main>
-        <!-- Archimedean Spiral Window -->
+        <!-- Janela da Espiral de Arquimedes -->
         <div class="spiral-window">
              <svg class="spiral-svg" viewBox="-350 -350 700 700">
                 <path class="spiral-path" id="archimedean-path"></path>
              </svg>
         </div>
-        <button id="mode-toggle"></button>
+         <!-- Botão Atualizado com Classes de Tema -->
+        <div class="button-wrapper">
+            <button id="mode-toggle" class="im-button"></button>
+        </div>
     </main>
 
     <script>
+        // --- JAVASCRIPT INALTERADO ---
         document.addEventListener('DOMContentLoaded', () => {
             const archimedeanSpiral = {
                 id: 'archimedean-path',
-                generator: (progress) => {
+                generator: (progress) => { 
                     let path = 'M 0,0';
                     const initialB = 0.1;
                     const finalB = 60.0;
@@ -106,11 +101,11 @@
                 }
             };
 
-            function easeInOutCubic(t) {
+            function easeInOutCubic(t) { 
                 return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
             }
 
-            function triggerSpiralAnimation(config) {
+            function triggerSpiralAnimation(config) { 
                 const pathEl = document.getElementById(config.id);
                 if (!pathEl) return;
                 const svgElement = pathEl.closest('.spiral-svg');
@@ -197,3 +192,4 @@
     </script>
 </body>
 </html>
+

@@ -3,113 +3,66 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Maelstrom [Interactive Simulation]</title>
+    <title>Maelstrom [Idle Mechanics]</title>
+    
+    <!-- Fonte e CSS do Tema -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="idle-mechanics-theme.css">
+
     <style>
-        /* Basic styles to ensure the canvas fills the screen */
+        /* Estilos CSS antigos removidos */
+        
+        /* Estilos básicos mantidos */
         body, html {
             margin: 0;
             padding: 0;
             overflow: hidden;
             height: 100%;
             width: 100%;
-            background-color: #000;
-            cursor: none; /* Hide cursor for a more immersive feel */
+            /* background-color e font-family agora vêm do tema */
+            cursor: none; 
         }
         canvas {
             display: block;
+            position: absolute; /* Garantir que o canvas esteja atrás dos controles */
+            top: 0;
+            left: 0;
+            z-index: 1;
         }
-
-        /* Styles for the Maelstrom Control Node */
-        .control-node {
-            position: absolute;
-            bottom: 20px;
-            left: 20px;
-            padding: 15px;
-            background: rgba(10, 25, 40, 0.5);
-            border: 1px solid rgba(95, 204, 255, 0.3);
-            border-radius: 8px;
-            display: flex;
-            align-items: center; /* Center items for new sound toggle */
-            flex-direction: column;
-            gap: 15px;
-            opacity: 0.3;
-            transition: opacity 0.3s ease;
-            z-index: 10;
-        }
-        .control-node:hover {
-            opacity: 0.9;
-        }
-        .knob {
-            width: 150px;
-            height: 10px;
-            background: rgba(0,0,0,0.5);
-            border-radius: 5px;
-            position: relative;
-            /* MODIFIED: Removed cursor change to prevent flickering */
-        }
-        .knob-handle {
-            position: absolute;
-            top: -2.5px;
-            left: 50%; /* Initial position */
-            width: 15px;
-            height: 15px;
-            background: #5fccff;
-            border-radius: 50%;
-            transform: translateX(-50%);
-            box-shadow: 0 0 5px #fff, 0 0 8px #5fccff;
-        }
-
-        /* NEW: Styles for the sound toggle button */
-        #sound-toggle {
-            width: 24px;
-            height: 24px;
-            cursor: pointer;
-            border: 1px solid rgba(95, 204, 255, 0.3);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: rgba(10, 25, 40, 0.8);
-            margin-bottom: 10px; /* Space it from the knobs */
-        }
-        #sound-toggle svg {
-            width: 14px;
-            height: 14px;
-            fill: #5fccff;
-        }
-        #sound-toggle .icon-sound-on { display: none; }
-        #sound-toggle .icon-sound-off { display: block; }
-        #sound-toggle.enabled .icon-sound-on { display: block; }
-        #sound-toggle.enabled .icon-sound-off { display: none; }
 
     </style>
 </head>
 <body>
-    <!-- The canvas is the primary display element -->
+    <!-- O canvas é o elemento principal de exibição -->
     <canvas id="glcanvas"></canvas>
 
-    <!-- Maelstrom Control Node UI -->
-    <div class="control-node" id="control-node">
-        <!-- NEW: Sound Toggle Button -->
-        <div id="sound-toggle">
+    <!-- 
+      ATUALIZADO: 
+      - Contêiner de controle agora usa classes de tema.
+      - Botão de som é um <button> com classes de tema.
+      - Knobs são <input type="range">.
+    -->
+    <div class="im-controls corner-bottom-left" id="control-node">
+        
+        <!-- Botão de Som Atualizado -->
+        <button id="sound-toggle" class="im-button">
+            <!-- SVGs agora estão dentro do botão -->
             <svg class="icon-sound-on" viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"></path></svg>
             <svg class="icon-sound-off" viewBox="0 0 24 24"><path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"></path></svg>
-        </div>
-        <div class="knob" id="knob-structure">
-            <div class="knob-handle"></div>
-        </div>
-        <div class="knob" id="knob-energy">
-            <div class="knob-handle"></div>
-        </div>
-        <div class="knob" id="knob-hue">
-            <div class="knob-handle"></div>
-        </div>
+        </button>
+
+        <!-- Sliders Atualizados -->
+        <input type="range" id="slider-structure" min="0" max="1" step="0.01" value="0.5">
+        <input type="range" id="slider-energy" min="0" max="1" step="0.01" value="0.5">
+        <input type="range" id="slider-hue" min="0" max="1" step="0.01" value="0.6">
     </div>
     
-    <!-- External library for 3D graphics -->
+    <!-- Biblioteca Three.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 
-    <!-- SHADERS: The rendering logic for the visuals -->
+    <!-- SHADERS (Inalterados) -->
     <script id="vortex-background-vs" type="x-shader/x-vertex">
         varying vec2 vUv; 
         void main() { 
@@ -118,7 +71,7 @@
         }
     </script>
     <script id="vortex-background-fs" type="x-shader/x-fragment">
-        /* ... (Shader code unchanged) ... */
+        /* ... (Código do shader inalterado) ... */
         uniform vec2 u_resolution;
         uniform float u_time;
         uniform vec2 u_mouse;
@@ -208,7 +161,7 @@
         }
     </script>
     <script id="gpgpu-compute-fs" type="x-shader/x-fragment">
-        /* ... (Shader code unchanged) ... */
+        /* ... (Código do shader inalterado) ... */
         uniform sampler2D t_pos; 
         uniform vec2 u_resolution; 
         uniform float u_time; 
@@ -253,13 +206,13 @@
             gl_FragColor = vec4(pos, 0.0, 1.0); 
         }
     </script>
-    <script id="debris-render-vs" type="x-shader/x-vertex"> /* ... (unchanged) ... */ uniform sampler2D t_pos; void main() { vec3 pos = texture2D(t_pos, position.xy).xyz; gl_PointSize = mix(2.0, 0.5, smoothstep(0.0, 0.5, distance(pos.xy, vec2(0.0,0.0)))); gl_Position = projectionMatrix * modelViewMatrix * vec4(pos.xy, 0.0, 1.0); }</script>
-    <script id="debris-render-fs" type="x-shader/x-fragment"> /* ... (unchanged) ... */ void main() { gl_FragColor = vec4(vec3(0.7), 0.5); }</script>
+    <script id="debris-render-vs" type="x-shader/x-vertex"> /* ... (inalterado) ... */ uniform sampler2D t_pos; void main() { vec3 pos = texture2D(t_pos, position.xy).xyz; gl_PointSize = mix(2.0, 0.5, smoothstep(0.0, 0.5, distance(pos.xy, vec2(0.0,0.0)))); gl_Position = projectionMatrix * modelViewMatrix * vec4(pos.xy, 0.0, 1.0); }</script>
+    <script id="debris-render-fs" type="x-shader/x-fragment"> /* ... (inalterado) ... */ void main() { gl_FragColor = vec4(vec3(0.7), 0.5); }</script>
 
-    <!-- MAIN JAVASCRIPT: The core simulation logic -->
+    <!-- MAIN JAVASCRIPT: Lógica principal da simulação -->
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            // Basic Three.js setup
+            // Configuração básica do Three.js
             const scene = new THREE.Scene();
             const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
             const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('glcanvas') });
@@ -271,7 +224,7 @@
             let springConstant = 0.00025;
             const damping = 0.97; 
 
-            // Hurricane phase logic variables
+            // Variáveis de lógica de fase do furacão
             let hurricaneCategory = 1.0;
             let isCharging = false;
             let chargeLevel = 0.0;
@@ -279,19 +232,19 @@
             let cataclysmStartTime = -1;
             const CATACLYSM_DURATION = 1.0; 
 
-            // --- INTERACTIVITY VARIABLES ---
+            // --- VARIÁVEIS DE INTERATIVIDADE ---
             const thermalHotspot = new THREE.Vector2(-0.7, 0.0);
             const WIND_SHEAR_Y_POS = 0.2;
             const WIND_SHEAR_HEIGHT = 0.5;
-            let structure = 0.5, energy = 0.5, hue = 0.6;
+            let structure = 0.5, energy = 0.5, hue = 0.6; // Valores iniciais
             let pressure = 0.5;
             let isOverload = false;
             let overloadStartTime = -1;
             const OVERLOAD_DURATION = 0.5;
             let shockwaveTime = -1;
 
-            // --- NEW: Sound Control Variables ---
-            let isMuted = true;
+            // --- NOVO: Variáveis de Controle de Som ---
+            let isMuted = true; // Começa mudo
             let audioCtx, isAudioReady = false, highWindFilter, highWindGain, chargeWindFilter, chargeWindGain, waveRoar, waveRoarGain, waveLFO, waveLFOGain;
             
             async function initAudio() {
@@ -314,15 +267,14 @@
                 chargeWindFilter = audioCtx.createBiquadFilter(); chargeWindFilter.type = 'bandpass'; chargeWindFilter.frequency.setValueAtTime(200, audioCtx.currentTime); chargeWindFilter.Q.setValueAtTime(15, audioCtx.currentTime); 
                 whiteNoise.connect(chargeWindGain).connect(chargeWindFilter).connect(audioCtx.destination); 
                 isAudioReady = true; 
-                // NEW: Suspend audio immediately if muted
                 if (isMuted) {
                     audioCtx.suspend();
                 }
             }
-            function triggerCataclysmAudio() { /* ... (unchanged) ... */ if(!isAudioReady || isMuted) return; const crack = new AudioWorkletNode(audioCtx, 'wn'); const crackGain = audioCtx.createGain(); crackGain.gain.setValueAtTime(1.2, audioCtx.currentTime); crackGain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.4); crack.connect(crackGain).connect(audioCtx.destination); setTimeout(() => crack.disconnect(), 500); }
+            function triggerCataclysmAudio() { /* ... (inalterado) ... */ if(!isAudioReady || isMuted) return; const crack = new AudioWorkletNode(audioCtx, 'wn'); const crackGain = audioCtx.createGain(); crackGain.gain.setValueAtTime(1.2, audioCtx.currentTime); crackGain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.4); crack.connect(crackGain).connect(audioCtx.destination); setTimeout(() => crack.disconnect(), 500); }
             function triggerOverloadAudio() { if(!isAudioReady || isMuted) return; const boom = new AudioWorkletNode(audioCtx, 'wn'); const boomGain = audioCtx.createGain(); boomGain.gain.setValueAtTime(2.0, audioCtx.currentTime); boomGain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + OVERLOAD_DURATION); const boomFilter = audioCtx.createBiquadFilter(); boomFilter.type = 'lowpass'; boomFilter.frequency.setValueAtTime(500, audioCtx.currentTime); boomFilter.frequency.exponentialRampToValueAtTime(50, audioCtx.currentTime + OVERLOAD_DURATION); boom.connect(boomFilter).connect(boomGain).connect(audioCtx.destination); setTimeout(() => boom.disconnect(), OVERLOAD_DURATION * 1000 + 100); }
             
-            // --- GPGPU and Material Setup (omitted for brevity) ---
+            // --- Configuração de GPGPU e Material (omitido para brevidade) ---
             const vortexMaterial = new THREE.ShaderMaterial({ uniforms: { u_time: { value: 0.0 }, u_resolution: { value: new THREE.Vector2() }, u_mouse: { value: new THREE.Vector2() }, u_charge_level: {value: 0.0}, u_cataclysm: {value: new THREE.Vector3()}, u_hurricane_category: {value: 1.0}, u_hotspot_pos: { value: thermalHotspot }, u_structure: {value: structure}, u_energy: {value: energy}, u_hue: {value: hue}, u_pressure: {value: pressure}, u_overload: {value: new THREE.Vector3()} }, vertexShader: document.getElementById('vortex-background-vs').textContent, fragmentShader: document.getElementById('vortex-background-fs').textContent });
             const gpgpuMaterial = new THREE.ShaderMaterial({ uniforms: { t_pos: { value: null }, u_time: { value: 0.0 }, u_resolution: { value: new THREE.Vector2() }, u_mouse: { value: new THREE.Vector2() }, u_hurricane_category: {value: 1.0}, u_structure: {value: structure}, u_wind_shear_dir: {value: new THREE.Vector2(1.0, 0.0)}, u_wind_shear_y_pos: {value: WIND_SHEAR_Y_POS}, u_wind_shear_height: {value: WIND_SHEAR_HEIGHT}, u_shockwave: { value: new THREE.Vector3(0,0,0) } }, vertexShader: document.getElementById('vortex-background-vs').textContent, fragmentShader: document.getElementById('gpgpu-compute-fs').textContent });
             const vortexPlane = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), vortexMaterial); scene.add(vortexPlane); const PARTICLE_COUNT = 128 * 128; const TEXTURE_SIZE = 128; const data = new Float32Array(PARTICLE_COUNT * 4); for (let i = 0; i < PARTICLE_COUNT; i++) { const i4 = i * 4; const r = (Math.random() * 2.0 - 1.0) * 1.5; const a = Math.random() * Math.PI * 2.0; data[i4 + 0] = Math.cos(a) * r; data[i4 + 1] = Math.sin(a) * r; data[i4 + 2] = 0; data[i4 + 3] = 1; } const posTexture = new THREE.DataTexture(data, TEXTURE_SIZE, TEXTURE_SIZE, THREE.RGBAFormat, THREE.FloatType); posTexture.needsUpdate = true; let rt1 = new THREE.WebGLRenderTarget(TEXTURE_SIZE, TEXTURE_SIZE, { type: THREE.FloatType }); let rt2 = new THREE.WebGLRenderTarget(TEXTURE_SIZE, TEXTURE_SIZE, { type: THREE.FloatType }); renderer.copyTextureToTexture(new THREE.Vector2(0,0), posTexture, rt1.texture); const gpgpuScene = new THREE.Scene(); const gpgpuPlane = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), gpgpuMaterial); gpgpuScene.add(gpgpuPlane); const debrisMaterial = new THREE.ShaderMaterial({ uniforms: { t_pos: { value: null } }, vertexShader: document.getElementById('debris-render-vs').textContent, fragmentShader: document.getElementById('debris-render-fs').textContent, transparent: true, blending: THREE.AdditiveBlending }); const debrisGeometry = new THREE.BufferGeometry(); const debrisPositions = new Float32Array(PARTICLE_COUNT * 3); for (let i = 0; i < PARTICLE_COUNT; i++) { const i3 = i * 3; debrisPositions[i3 + 0] = (i % TEXTURE_SIZE) / TEXTURE_SIZE; debrisPositions[i3 + 1] = Math.floor(i / TEXTURE_SIZE) / TEXTURE_SIZE; } debrisGeometry.setAttribute('position', new THREE.BufferAttribute(debrisPositions, 3)); const debris = new THREE.Points(debrisGeometry, debrisMaterial); scene.add(debris);
@@ -402,28 +354,21 @@
                 const temp = rt1; rt1 = rt2; rt2 = temp;
             }
             
-            function onWindowResize() { /* ... (unchanged) ... */ const width = window.innerWidth; const height = window.innerHeight; renderer.setSize(width, height); vortexMaterial.uniforms.u_resolution.value.set(width, height); gpgpuMaterial.uniforms.u_resolution.value.set(width, height); targetMouse.set(width / 2, height - (height / 2)); vortexCenter.set(width / 2, height - (height / 2)); }
+            function onWindowResize() { /* ... (inalterado) ... */ const width = window.innerWidth; const height = window.innerHeight; renderer.setSize(width, height); vortexMaterial.uniforms.u_resolution.value.set(width, height); gpgpuMaterial.uniforms.u_resolution.value.set(width, height); targetMouse.set(width / 2, height - (height / 2)); vortexCenter.set(width / 2, height - (height / 2)); }
             function onMouseMove(event) { targetMouse.set(event.clientX, window.innerHeight - event.clientY); }
 
-            function setupKnob(knobId, callback) {
-                const knob = document.getElementById(knobId);
-                const handle = knob.querySelector('.knob-handle');
-                let isDragging = false;
-                
-                const updateKnob = (clientX) => {
-                    const rect = knob.getBoundingClientRect();
-                    const value = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
-                    handle.style.left = `${value * 100}%`;
-                    callback(value);
-                };
+            // --- REMOVIDO: setupKnob ---
 
-                knob.addEventListener('mousedown', (e) => { isDragging = true; updateKnob(e.clientX); });
-                window.addEventListener('mousemove', (e) => { if (isDragging) updateKnob(e.clientX); });
-                window.addEventListener('mouseup', () => { isDragging = false; });
-            }
-            setupKnob('knob-structure', (value) => { structure = value; });
-            setupKnob('knob-energy', (value) => { energy = value; });
-            setupKnob('knob-hue', (value) => { hue = value; });
+            // --- NOVO: Listeners de Slider Padrão ---
+            document.getElementById('slider-structure').addEventListener('input', (e) => {
+                structure = parseFloat(e.target.value);
+            });
+            document.getElementById('slider-energy').addEventListener('input', (e) => {
+                energy = parseFloat(e.target.value);
+            });
+            document.getElementById('slider-hue').addEventListener('input', (e) => {
+                hue = parseFloat(e.target.value);
+            });
             
             window.addEventListener('wheel', (e) => { pressure = Math.max(0, Math.min(1, pressure - e.deltaY * 0.001)); }, { passive: false });
 
@@ -441,11 +386,12 @@
                 }
             });
 
-            // NEW: Sound Toggle Listener
+            // Listener de Toggle de Som Atualizado
             const soundToggle = document.getElementById('sound-toggle');
             soundToggle.addEventListener('click', () => {
                 isMuted = !isMuted;
-                soundToggle.classList.toggle('enabled', !isMuted);
+                // A classe 'active' do tema é usada para "som ligado"
+                soundToggle.classList.toggle('active', !isMuted); 
                 if (isAudioReady) {
                     if (isMuted) {
                         audioCtx.suspend();
@@ -468,4 +414,3 @@
     </script>
 </body>
 </html>
-

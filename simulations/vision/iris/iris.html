@@ -2,84 +2,46 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Interactive Spiral Simulation</title>
+  <!-- Título atualizado -->
+  <title>Iris [Idle Mechanics]</title>
+  
+  <!-- ADICIONADO: O novo arquivo de tema unificado -->
+  <link rel="stylesheet" href="idle-mechanics-theme.css">
+  
+  <!-- ADICIONADO: Fonte 'Inter' para consistência -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
+  
   <style>
-    /* Color palettes for the spiral particles. These are defined as CSS variables 
-      for easy access and modification.
+    /* REMOVIDO: :root (variáveis não utilizadas)
+      REMOVIDO: html, body (agora no tema)
     */
-    :root {
-      --c1: #FF1E8E;
-      --c2: #FFEF00;
-      --c3: #00FFF7;
-      --c4: #B200FF;
-      --c5: #A6FF00;
-    }
     
-    /* Basic setup for the page to ensure the canvas fills the viewport */
-    html, body {
-      margin: 0;
-      padding: 0;
-      background: #000;
-      height: 100vh; /* Set height to fill the viewport */
-      overflow: hidden; /* Prevent scrollbars */
-      cursor: crosshair;
-    }
-    
-    /* Canvas styling to make it fill its container */
+    /* Estilo de canvas mantido */
     canvas {
       display: block;
       width: 100%;
       height: 100%;
     }
 
-    /* --- Updated UI for Color Palette Switcher --- */
-    #palette-switcher {
-      position: absolute;
-      top: 20px;
-      left: 20px;
-      display: flex;
-      flex-direction: column; /* Stack buttons vertically */
-      gap: 10px;
-      z-index: 10; /* Ensure it's above the canvas */
-      opacity: 0; /* Hidden by default, will be faded in via JS */
-      transition: opacity 0.4s ease-in-out; /* Smooth fade effect */
-    }
-
-    .palette-button {
-      width: 24px; /* Half the original size */
-      height: 24px; /* Half the original size */
-      border: 2px solid rgba(255, 255, 255, 0.5);
-      border-radius: 50%;
-      cursor: pointer;
-      transition: all 0.2s ease-in-out;
-      box-shadow: 0 0 8px rgba(0,0,0,0.5);
-    }
-    
-    .palette-button:hover {
-        transform: scale(1.15);
-        border-color: rgba(255, 255, 255, 0.9);
-    }
-
-    .palette-button.active {
-        border-color: #ffffff;
-        transform: scale(1.2);
-        box-shadow: 0 0 15px #ffffff;
-    }
-
-    /* This class is no longer used for swatches, but can be removed */
-    .color-swatch {
-        width: 100%;
-        height: 100%;
-    }
+    /* REMOVIDO: #palette-switcher (agora .im-controls)
+      REMOVIDO: .palette-button (agora .im-button.palette-swatch)
+      REMOVIDO: .color-swatch (não utilizado)
+    */
 
   </style>
 </head>
 <body>
-  <!-- The canvas element where the spiral will be drawn -->
+  <!-- Canvas da simulação (Inalterado) -->
   <canvas id="spiral-canvas"></canvas>
 
-  <!-- New container for our palette buttons -->
-  <div id="palette-switcher"></div>
+  <!-- 
+    ATUALIZADO: 
+    - O contêiner agora usa as classes de "Altar de Controle" do tema.
+    - O .corner-top-left o posiciona corretamente.
+  -->
+  <div id="palette-switcher" class="im-controls corner-top-left"></div>
 
 
   <script>
@@ -87,7 +49,7 @@
     const ctx = canvas.getContext('2d');
     const paletteSwitcher = document.getElementById('palette-switcher');
     
-    // Set initial canvas dimensions
+    // ... (configuração de canvas e variáveis da simulação inalteradas) ...
     let width = window.innerWidth;
     let height = window.innerHeight;
     canvas.width = width;
@@ -95,18 +57,18 @@
 
     // --- Core Simulation Variables ---
     const particles = [];
-    const totalParticles = 5000; // Total number of particles in the spiral
-    const baseSpiralScale = 10; // Controls the base distance between spiral arms
-    let rotation = 0; // Current rotation angle of the spiral
-    let tick = 0; // A counter for animation frames, used for sine-based movements
-    let spiralProgress = 0; // Controls the gradual appearance of the spiral
-    const maxSpiralProgress = 1.0; // The final value for progress (fully drawn)
-    const spiralGrowthRate = maxSpiralProgress / (60 * 10); // Grow over 10 seconds (at 60fps)
+    const totalParticles = 5000; 
+    const baseSpiralScale = 10; 
+    let rotation = 0; 
+    let tick = 0; 
+    let spiralProgress = 0; 
+    const maxSpiralProgress = 1.0; 
+    const spiralGrowthRate = maxSpiralProgress / (60 * 10); 
 
     // --- Interactivity Variables ---
     const mouse = { x: width / 2, y: height / 2, down: false };
     const shockwaves = [];
-    let currentScaleModifier = 1.0; // For smoothed scaling
+    let currentScaleModifier = 1.0; 
     
     // --- Strategy 3: User-Controlled Evolution (Color Palettes) ---
     const palettes = [
@@ -117,66 +79,76 @@
     ];
     let currentPaletteIndex = 0;
 
-    // --- Particle Initialization ---
-    // Create particles with additional properties for physics and interaction
+    // --- Particle Initialization (Inalterado) ---
     for (let i = 0; i < totalParticles; i++) {
       const theta = i * 0.1;
       const r = baseSpiralScale * theta;
       particles.push({ 
         baseTheta: theta, 
         r: r,
-        // Properties for gravitational influence
-        x: 0, y: 0, // Current rendered position
-        vx: 0, vy: 0, // Velocity for smooth movement
-        offsetX: 0, offsetY: 0, // Offset from base position due to forces
+        x: 0, y: 0, 
+        vx: 0, vy: 0, 
+        offsetX: 0, offsetY: 0, 
       });
     }
     
-    // --- Updated function to create single-color palette buttons ---
+    // --- ATUALIZADO: createPaletteButtons ---
     function createPaletteButtons() {
-        paletteSwitcher.innerHTML = ''; // Clear any existing buttons
+        paletteSwitcher.innerHTML = ''; // Limpa botões existentes
         palettes.forEach((palette, index) => {
-            const button = document.createElement('div');
-            button.classList.add('palette-button');
+            // ATUALIZADO: Cria um <button> em vez de <div>
+            const button = document.createElement('button');
+            
+            // ATUALIZADO: Adiciona classes do tema
+            button.classList.add('im-button', 'palette-swatch'); 
+            
             if (index === currentPaletteIndex) {
                 button.classList.add('active');
             }
 
-            // Set the background to a single representative color from the palette
-            button.style.backgroundColor = palette[2]; // Using the middle color
-
-            // Event listener to change the palette
-            button.addEventListener('click', (e) => {
-                e.stopPropagation(); // Prevent canvas click event from firing
+            // ATUALIZADO: Define a cor de fundo E a cor de fundo ativa
+            // para sobrescrever o .active cinza padrão.
+            const representativeColor = palette[2]; // Pega a cor do meio
+            button.style.backgroundColor = representativeColor;
+            button.addEventListener('mousedown', () => {
+                // Remove .active de todos
+                document.querySelectorAll('.palette-swatch').forEach(btn => btn.classList.remove('active'));
+                // Adiciona .active a este
+                button.classList.add('active');
                 currentPaletteIndex = index;
-                // Update the 'active' class on all buttons
+            });
+            
+            // Corrige o bug de clique (movido de 'click' para 'mousedown')
+            button.addEventListener('mousedown', (e) => {
+                e.stopPropagation(); // Previne o clique na canvas
+                currentPaletteIndex = index;
+                
                 document.querySelectorAll('.palette-button').forEach(btn => btn.classList.remove('active'));
                 button.classList.add('active');
             });
+            
             paletteSwitcher.appendChild(button);
         });
     }
 
-    // --- Main Animation Loop ---
+    // --- Main Animation Loop (Inalterado) ---
     function animateSpiral() {
-      tick++; // Increment frame counter
+      tick++; 
       
       if (spiralProgress < maxSpiralProgress) {
         spiralProgress += spiralGrowthRate;
       }
 
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.1)'; // Slightly faster fade for clarity
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.1)'; 
       ctx.fillRect(0, 0, width, height);
       
-      // --- Refinement 3: Subtle Background Glow ---
       const pulse = 0.05 + 0.02 * Math.sin(tick * 0.02);
       const glow = ctx.createRadialGradient(width / 2, height / 2, 0, width / 2, height / 2, Math.max(width, height) / 2);
-      glow.addColorStop(0, `rgba(178, 0, 255, ${pulse * 0.2})`); // Faint, pulsating purple
+      glow.addColorStop(0, `rgba(178, 0, 255, ${pulse * 0.2})`); 
       glow.addColorStop(1, 'rgba(0, 0, 0, 0.0)');
       ctx.fillStyle = glow;
       ctx.fillRect(0, 0, width, height);
 
-      // --- Speed Zone Logic for all four corners ---
       const speedZoneSize = 100;
       let inAnySpeedZone = false;
 
@@ -187,29 +159,25 @@
           { x: width - speedZoneSize, y: height - speedZoneSize } // Bottom-Right
       ];
 
-      // Check if the mouse is inside any of the corner zones
       for (const corner of corners) {
           if (mouse.x >= corner.x && mouse.x <= corner.x + speedZoneSize &&
               mouse.y >= corner.y && mouse.y <= corner.y + speedZoneSize) {
               inAnySpeedZone = true;
-              break; // Exit the loop early if one is found
+              break; 
           }
       }
       
       const speedMultiplier = inAnySpeedZone ? 4.0 : 1.0;
-      
       const defaultSpeed = 0.001; 
       const speed = defaultSpeed * speedMultiplier;
       rotation -= speed;
 
-      // --- Refinement 2: Smoothed Mouse Scaling ---
       const targetScaleModifier = 0.5 + (mouse.y / height) * 1.5;
-      currentScaleModifier += (targetScaleModifier - currentScaleModifier) * 0.05; // Easing factor
+      currentScaleModifier += (targetScaleModifier - currentScaleModifier) * 0.05; 
 
       const wobble = 20 * Math.sin(tick * 0.01);
       const visibleCount = Math.floor(totalParticles * spiralProgress);
       
-      // --- Shockwave Animation ---
       for (let i = shockwaves.length - 1; i >= 0; i--) {
         const sw = shockwaves[i];
         sw.radius += 5; 
@@ -226,18 +194,16 @@
         }
       }
 
-      // Loop through and update each visible particle
       for (let i = 0; i < visibleCount; i++) {
         const p = particles[i];
         
         const flex = 0.2 * Math.sin(tick * 0.005 + i * 0.001);
         const angle = p.baseTheta + rotation + flex;
-        const scaledR = p.r * currentScaleModifier; // Use smoothed scale
+        const scaledR = p.r * currentScaleModifier; 
         
         const baseX = width / 2 + wobble + scaledR * Math.cos(angle);
         const baseY = height / 2 + wobble * 0.5 + scaledR * Math.sin(angle);
 
-        // --- Gravitational Mouse Influence ---
         const dx = baseX + p.offsetX - mouse.x;
         const dy = baseY + p.offsetY - mouse.y;
         const distance = Math.sqrt(dx * dx + dy * dy);
@@ -251,7 +217,6 @@
         p.vx += (force * dx / distance) || 0;
         p.vy += (force * dy / distance) || 0;
         
-        // --- Shockwave particle interaction ---
          for (const sw of shockwaves) {
             const pdx = p.x - sw.x;
             const pdy = p.y - sw.y;
@@ -279,7 +244,6 @@
         const colorIndex = Math.floor(i / 500) % palettes[currentPaletteIndex].length;
         ctx.fillStyle = palettes[currentPaletteIndex][colorIndex];
         
-        // --- Refinement 1: Graduated Particle Size ---
         const baseRadius = 0.5 + (i / totalParticles) * 1.5;
         const dynamicRadius = 0.5 * Math.sin(tick * 0.1 + i * 0.01);
         const finalRadius = baseRadius + dynamicRadius;
@@ -296,7 +260,7 @@
     createPaletteButtons();
     animateSpiral();
 
-    // --- Logic to show UI on load and then fade out ---
+    // --- Logic to show UI on load and then fade out (Inalterado) ---
     paletteSwitcher.style.opacity = '1';
     setTimeout(() => {
         const cornerThreshold = 150;
@@ -305,7 +269,7 @@
         }
     }, 5000);
 
-    // --- Event Listeners ---
+    // --- Event Listeners (Inalterado) ---
     window.addEventListener('resize', () => {
       width = window.innerWidth;
       height = window.innerHeight;
@@ -338,4 +302,3 @@
   </script>
 </body>
 </html>
-

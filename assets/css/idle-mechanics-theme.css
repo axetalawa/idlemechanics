@@ -1,0 +1,190 @@
+/*
+ * IDLE MECHANICS - TEMA DE UNIFICAÇÃO
+ * Um sistema CSS para unificar as simulações de "Ritual Machines".
+ * Baseado na filosofia de "beleza inútil" e "arquiteturas de atenção".
+ */
+
+/* * ===========================================
+ * 1. O "VASO": PALETA DE CORES E BASE
+ * ===========================================
+ * Define as cores fundamentais do "voidskin" e dos "glifos" de acentuação.
+ */
+:root {
+  /* Paleta de Glifos (Baseada no modo Caribe) */
+  --im-color-primary: #ff0090;   /* Hibiscus Fire: Para ações primárias, brilhos, estado ativo */
+  --im-color-secondary: #fff204; /* Sun Glyph Yellow: Para ações secundárias, indicadores */
+  --im-color-tertiary: #09ff00;  /* Limeleaf Whisper: Para bordas sutis, meta-elementos */
+
+  /* Paleta do Vaso (Voidskin) */
+  --im-color-bg: #0D0D0D;        /* Fundo escuro principal */
+  --im-color-text: #BBBBBB;       /* Cor de texto padrão (para legibilidade) */
+  --im-color-ui-bg: rgba(20, 20, 20, 0.7); /* Fundo semitransparente para painéis de UI */
+}
+
+/* Configuração base do corpo */
+body {
+  background-color: var(--im-color-bg);
+  color: var(--im-color-text);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  margin: 0;
+  padding: 0;
+  overflow: hidden; /* Garante que a simulação preencha a tela */
+}
+
+html, body {
+  height: 100%;
+  width: 100%;
+}
+
+/* * ===========================================
+ * 2. AS "MECÂNICAS": COMPONENTES DE UI
+ * ===========================================
+ * Estilos padronizados para botões, sliders e painéis.
+ */
+
+/**
+ * a. O "Altar de Controle" (.im-controls)
+ * Um contêiner de "vidro" flutuante para agrupar controles.
+ */
+.im-controls {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 100;
+
+  background-color: var(--im-color-ui-bg);
+  border: 1px solid var(--im-color-tertiary);
+  border-radius: 8px;
+  padding: 15px;
+  
+  display: flex;
+  gap: 15px;
+  
+  /* Efeito de vidro fosco */
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+  transition: opacity 0.3s ease;
+}
+
+/* Variação para controles no canto, como em `iris.html` */
+.im-controls.corner-top-left {
+  left: 20px;
+  top: 20px;
+  bottom: auto;
+  transform: none;
+  flex-direction: column;
+}
+
+/**
+ * b. O "Glifo de Ação" (.im-button)
+ * Um botão minimalista, baseado em contorno e brilho.
+ */
+.im-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  
+  /* Forma e Tamanho (circular por padrão) */
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  padding: 0;
+
+  /* Estilo de Glifo */
+  background-color: transparent;
+  border: 2px solid var(--im-color-primary);
+  color: var(--im-color-primary);
+  
+  cursor: pointer;
+  z-index: 101;
+  transition: all 0.2s ease;
+}
+
+/* Interação do Glifo (Brilho) */
+.im-button:hover {
+  color: var(--im-color-text);
+  border-color: var(--im-color-secondary);
+  box-shadow: 0 0 12px 2px var(--im-color-primary);
+  transform: scale(1.05);
+}
+
+/* Estado Ativo (como o toggle de `polygonal.html`) */
+.im-button.active {
+  background-color: rgba(187, 187, 187, 0.2); /* Fundo cinza suave */
+  box-shadow: 0 0 12px 2px var(--im-color-text); /* Brilho cinza/branco */
+  border-color: var(--im-color-text);
+  color: var(--im-color-text);
+}
+
+/**
+ * c. O "Regulador de Ritmo" (input[type="range"])
+ * Estilização do slider HTML padrão.
+ */
+input[type="range"].im-slider,
+.im-controls input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+  cursor: pointer;
+  /* ALTERADO: Largura reduzida para 75px */
+  width: 75px; 
+  margin: 0;
+}
+
+/* --- Estilo do Trilho (Track) --- */
+input[type="range"].im-slider::-webkit-slider-runnable-track,
+.im-controls input[type="range"]::-webkit-slider-runnable-track {
+  background: var(--im-color-tertiary);
+  height: 2px;
+  border-radius: 1px;
+}
+input[type="range"].im-slider::-moz-range-track,
+.im-controls input[type="range"]::-moz-range-track {
+  background: var(--im-color-tertiary);
+  height: 2px;
+  border-radius: 1px;
+}
+
+/* --- Estilo do Polegar (Thumb) --- */
+input[type="range"].im-slider::-webkit-slider-thumb,
+.im-controls input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  margin-top: -9px; /* Centraliza o polegar ( (20px - 2px) / 2 ) */
+  
+  /* ALTERADO: Cor de fundo para cinza */
+  background-color: var(--im-color-text); 
+  border: 2px solid var(--im-color-bg);
+  height: 20px;
+  width: 10px;
+  border-radius: 2px;
+  transition: transform 0.1s ease, box-shadow 0.1s ease; /* Adicionada transição de sombra */
+}
+input[type="range"].im-slider::-moz-range-thumb,
+.im-controls input[type="range"]::-moz-range-thumb {
+  /* ALTERADO: Cor de fundo para cinza */
+  background-color: var(--im-color-text);
+  border: 2px solid var(--im-color-bg);
+  height: 20px;
+  width: 10px;
+  border-radius: 2px;
+  transition: transform 0.1s ease, box-shadow 0.1s ease; /* Adicionada transição de sombra */
+}
+
+/* Interação do Polegar */
+input[type="range"].im-slider:hover::-webkit-slider-thumb,
+.im-controls input[type="range"]:hover::-webkit-slider-thumb {
+  transform: scale(1.2);
+  /* ALTERADO: Brilho para secundário (amarelo) no hover */
+  box-shadow: 0 0 8px 0 var(--im-color-secondary); 
+}
+input[type="range"].im-slider:hover::-moz-range-thumb,
+.im-controls input[type="range"]:hover::-moz-range-thumb {
+  transform: scale(1.2);
+  /* ALTERADO: Brilho para secundário (amarelo) no hover */
+  box-shadow: 0 0 8px 0 var(--im-color-secondary);
+}
+
