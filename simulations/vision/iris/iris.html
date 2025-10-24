@@ -2,8 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <!-- Título atualizado -->
-  <title>Iris [Idle Mechanics]</title>
+  <title>Iris [Simplified]</title>
   
   <!-- ADICIONADO: O novo arquivo de tema unificado -->
   <link rel="stylesheet" href="idle-mechanics-theme.css">
@@ -14,21 +13,14 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
   
   <style>
-    /* REMOVIDO: :root (variáveis não utilizadas)
-      REMOVIDO: html, body (agora no tema)
-    */
-    
     /* Estilo de canvas mantido */
     canvas {
       display: block;
       width: 100%;
       height: 100%;
+      /* ADDED: Set background color directly for simplicity */
+      background-color: #000;
     }
-
-    /* REMOVIDO: #palette-switcher (agora .im-controls)
-      REMOVIDO: .palette-button (agora .im-button.palette-swatch)
-      REMOVIDO: .color-swatch (não utilizado)
-    */
 
   </style>
 </head>
@@ -61,13 +53,15 @@
     const baseSpiralScale = 10; 
     let rotation = 0; 
     let tick = 0; 
-    let spiralProgress = 0; 
+    
+    // --- MODIFIED: Set spiralProgress to 1.0 to start at full size ---
+    let spiralProgress = 1.0; 
     const maxSpiralProgress = 1.0; 
-    const spiralGrowthRate = maxSpiralProgress / (60 * 10); 
+    // const spiralGrowthRate = maxSpiralProgress / (60 * 10); // No longer needed
 
     // --- Interactivity Variables ---
     const mouse = { x: width / 2, y: height / 2, down: false };
-    const shockwaves = [];
+    // const shockwaves = []; // REMOVED: Shockwave feature removed
     let currentScaleModifier = 1.0; 
     
     // --- Strategy 3: User-Controlled Evolution (Color Palettes) ---
@@ -79,7 +73,9 @@
     ];
     let currentPaletteIndex = 0;
 
-    // --- Particle Initialization (Inalterado) ---
+    // --- Particle Initialization (MODIFIED) ---
+    // Removed physics properties (vx, vy, offsetX, offsetY)
+    // as they are no longer needed for a rigid spiral.
     for (let i = 0; i < totalParticles; i++) {
       const theta = i * 0.1;
       const r = baseSpiralScale * theta;
@@ -87,8 +83,6 @@
         baseTheta: theta, 
         r: r,
         x: 0, y: 0, 
-        vx: 0, vy: 0, 
-        offsetX: 0, offsetY: 0, 
       });
     }
     
@@ -96,29 +90,21 @@
     function createPaletteButtons() {
         paletteSwitcher.innerHTML = ''; // Limpa botões existentes
         palettes.forEach((palette, index) => {
-            // ATUALIZADO: Cria um <button> em vez de <div>
             const button = document.createElement('button');
-            
-            // ATUALIZADO: Adiciona classes do tema
             button.classList.add('im-button', 'palette-swatch'); 
             
             if (index === currentPaletteIndex) {
                 button.classList.add('active');
             }
 
-            // ATUALIZADO: Define a cor de fundo E a cor de fundo ativa
-            // para sobrescrever o .active cinza padrão.
-            const representativeColor = palette[2]; // Pega a cor do meio
+            const representativeColor = palette[2]; 
             button.style.backgroundColor = representativeColor;
             button.addEventListener('mousedown', () => {
-                // Remove .active de todos
                 document.querySelectorAll('.palette-swatch').forEach(btn => btn.classList.remove('active'));
-                // Adiciona .active a este
                 button.classList.add('active');
                 currentPaletteIndex = index;
             });
             
-            // Corrige o bug de clique (movido de 'click' para 'mousedown')
             button.addEventListener('mousedown', (e) => {
                 e.stopPropagation(); // Previne o clique na canvas
                 currentPaletteIndex = index;
@@ -131,122 +117,93 @@
         });
     }
 
-    // --- Main Animation Loop (Inalterado) ---
+    // --- Main Animation Loop (MODIFIED) ---
     function animateSpiral() {
       tick++; 
       
-      if (spiralProgress < maxSpiralProgress) {
-        spiralProgress += spiralGrowthRate;
-      }
+      // REMOVED: Spiral growth logic is no longer needed
+      // if (spiralProgress < maxSpiralProgress) {
+      //   spiralProgress += spiralGrowthRate;
+      // }
 
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.1)'; 
+      // MODIFIED: Use a solid black with lower opacity for a "trails" effect
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.05)'; // Was 0.08, lowered for brighter/longer trails
       ctx.fillRect(0, 0, width, height);
       
-      const pulse = 0.05 + 0.02 * Math.sin(tick * 0.02);
-      const glow = ctx.createRadialGradient(width / 2, height / 2, 0, width / 2, height / 2, Math.max(width, height) / 2);
-      glow.addColorStop(0, `rgba(178, 0, 255, ${pulse * 0.2})`); 
-      glow.addColorStop(1, 'rgba(0, 0, 0, 0.0)');
-      ctx.fillStyle = glow;
-      ctx.fillRect(0, 0, width, height);
+      // REMOVED: Pulse and Glow effect for a cleaner look
+      // const pulse = 0.05 + 0.02 * Math.sin(tick * 0.02);
+      // const glow = ...
+      // ctx.fillStyle = glow;
+      // ctx.fillRect(0, 0, width, height);
 
-      const speedZoneSize = 100;
-      let inAnySpeedZone = false;
-
-      const corners = [
-          { x: 0, y: 0 }, // Top-Left
-          { x: width - speedZoneSize, y: 0 }, // Top-Right
-          { x: 0, y: height - speedZoneSize }, // Bottom-Left
-          { x: width - speedZoneSize, y: height - speedZoneSize } // Bottom-Right
-      ];
-
-      for (const corner of corners) {
-          if (mouse.x >= corner.x && mouse.x <= corner.x + speedZoneSize &&
-              mouse.y >= corner.y && mouse.y <= corner.y + speedZoneSize) {
-              inAnySpeedZone = true;
-              break; 
-          }
-      }
+      // REMOVED: Speed zone logic
+      // const speedZoneSize = 100;
+      // ...
       
-      const speedMultiplier = inAnySpeedZone ? 4.0 : 1.0;
+      // MODIFIED: Re-added speed zone logic for top corners
+      const speedZoneSize = 150; // Matching the UI fade trigger
+      let inSpeedZone = false;
+
+      // Check Top-Left
+      if (mouse.x < speedZoneSize && mouse.y < speedZoneSize) {
+          inSpeedZone = true;
+      }
+      // Check Top-Right
+      else if (mouse.x > width - speedZoneSize && mouse.y < speedZoneSize) {
+          inSpeedZone = true;
+      }
+
+      const speedMultiplier = inSpeedZone ? 5.0 : 1.0; // Was 1.0, now speeds up in corners
       const defaultSpeed = 0.001; 
       const speed = defaultSpeed * speedMultiplier;
       rotation -= speed;
 
-      const targetScaleModifier = 0.5 + (mouse.y / height) * 1.5;
+      // This logic is kept - spiral still scales with mouse Y position
+      // MODIFIED: Clamped the zoom range to be less extreme.
+      // Was: 0.5 + (mouse.y / height) * 1.5; (Range: 0.5x to 2.0x)
+      const targetScaleModifier = 0.75 + (mouse.y / height) * 0.75; // New Range: 0.75x to 1.5x
       currentScaleModifier += (targetScaleModifier - currentScaleModifier) * 0.05; 
 
-      const wobble = 20 * Math.sin(tick * 0.01);
-      const visibleCount = Math.floor(totalParticles * spiralProgress);
+      // MODIFIED: Wobble feature removed, set to 0
+      const wobble = 0; // 20 * Math.sin(tick * 0.01);
       
-      for (let i = shockwaves.length - 1; i >= 0; i--) {
-        const sw = shockwaves[i];
-        sw.radius += 5; 
-        sw.alpha = 1 - sw.radius / sw.maxRadius;
-
-        if (sw.alpha <= 0) {
-            shockwaves.splice(i, 1);
-        } else {
-            ctx.beginPath();
-            ctx.arc(sw.x, sw.y, sw.radius, 0, Math.PI * 2);
-            ctx.strokeStyle = `rgba(255, 255, 255, ${sw.alpha * 0.5})`;
-            ctx.lineWidth = 2;
-            ctx.stroke();
-        }
-      }
+      // MODIFIED: visibleCount is now always totalParticles
+      const visibleCount = totalParticles; // Math.floor(totalParticles * spiralProgress);
+      
+      // REMOVED: Shockwave drawing loop
+      // for (let i = shockwaves.length - 1; i >= 0; i--) { ... }
 
       for (let i = 0; i < visibleCount; i++) {
         const p = particles[i];
         
-        const flex = 0.2 * Math.sin(tick * 0.005 + i * 0.001);
+        // MODIFIED: Flex feature removed, set to 0
+        const flex = 0; // 0.2 * Math.sin(tick * 0.005 + i * 0.001);
         const angle = p.baseTheta + rotation + flex;
         const scaledR = p.r * currentScaleModifier; 
         
         const baseX = width / 2 + wobble + scaledR * Math.cos(angle);
         const baseY = height / 2 + wobble * 0.5 + scaledR * Math.sin(angle);
 
-        const dx = baseX + p.offsetX - mouse.x;
-        const dy = baseY + p.offsetY - mouse.y;
-        const distance = Math.sqrt(dx * dx + dy * dy);
-        const maxDist = 75;
-        
-        let force = 0;
-        if (distance < maxDist) {
-            force = (1 - distance / maxDist) * 10;
-        }
+        // --- ALL PHYSICS REMOVED ---
+        // The mouse repulsion, shockwave interaction, and physics
+        // updates (vx, vy, offsetX, offsetY) have been removed
+        // to make the spiral rigid.
+        // ---------------------------
 
-        p.vx += (force * dx / distance) || 0;
-        p.vy += (force * dy / distance) || 0;
-        
-         for (const sw of shockwaves) {
-            const pdx = p.x - sw.x;
-            const pdy = p.y - sw.y;
-            const pDist = Math.sqrt(pdx*pdx + pdy*pdy);
-            const rippleWidth = 20;
-            if (Math.abs(pDist - sw.radius) < rippleWidth) {
-                const shockwaveForce = (1 - Math.abs(pDist - sw.radius) / rippleWidth) * 2;
-                p.vx += shockwaveForce * pdx / pDist || 0;
-                p.vy += shockwaveForce * pdy / pDist || 0;
-            }
-        }
-
-        p.vx *= 0.9;
-        p.vy *= 0.9;
-        p.offsetX += p.vx;
-        p.offsetY += p.vy;
-        p.offsetX += (0 - p.offsetX) * 0.1;
-        p.offsetY += (0 - p.offsetY) * 0.1;
-
-        p.x = baseX + p.offsetX;
-        p.y = baseY + p.offsetY;
+        // MODIFIED: Set particle position directly to the calculated spiral point
+        p.x = baseX;
+        p.y = baseY;
 
         if (p.x < 0 || p.x > width || p.y < 0 || p.y > height) continue;
         
         const colorIndex = Math.floor(i / 500) % palettes[currentPaletteIndex].length;
         ctx.fillStyle = palettes[currentPaletteIndex][colorIndex];
         
-        const baseRadius = 0.5 + (i / totalParticles) * 1.5;
-        const dynamicRadius = 0.5 * Math.sin(tick * 0.1 + i * 0.01);
-        const finalRadius = baseRadius + dynamicRadius;
+        // MODIFIED: Increased base radius to make particles more visible
+        const baseRadius = 1.0 + (i / totalParticles) * 1.5; // Was 0.5 + ...
+        // REMOVED: Dynamic radius made particles disappear
+        // const dynamicRadius = 0.5 * Math.sin(tick * 0.1 + i * 0.01);
+        const finalRadius = baseRadius; // + dynamicRadius;
 
         ctx.beginPath();
         ctx.arc(p.x, p.y, finalRadius, 0, Math.PI * 2);
@@ -277,6 +234,7 @@
       canvas.height = height;
     });
 
+    // Mouse move still controls scale and UI visibility
     window.addEventListener('mousemove', e => {
       mouse.x = e.clientX;
       mouse.y = e.clientY;
@@ -287,16 +245,6 @@
       } else {
         paletteSwitcher.style.opacity = '0';
       }
-    });
-    
-    canvas.addEventListener('click', e => {
-      shockwaves.push({
-          x: e.clientX,
-          y: e.clientY,
-          radius: 0,
-          maxRadius: Math.max(width, height) * 0.5,
-          alpha: 1
-      });
     });
 
   </script>

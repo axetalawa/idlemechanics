@@ -71,12 +71,7 @@
           visibility: visible !important; 
         }
 
-         #controls-top-container {
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            flex-direction: row; 
-        }
+         /* Removed #controls-top-container styles */
 
         #controls-bottom-container {
             bottom: 20px;
@@ -171,10 +166,7 @@
 <body>
     <canvas id="simulationCanvas"></canvas>
 
-    <!-- UI (Inalterada) -->
-    <div id="controls-top-container" class="im-controls">
-         <button id="actionButton" class="im-button"></button>
-    </div>
+    <!-- UI (Top container removed) -->
     
     <div id="controls-bottom-container" class="im-controls">
         <input type="range" id="emergenceRate" name="emergenceRate" min="0" max="100" value="50">
@@ -186,7 +178,7 @@
         // --- Canvas Setup ---
         const canvas = document.getElementById('simulationCanvas');
         const ctx = canvas.getContext('2d');
-        const actionButton = document.getElementById('actionButton'); 
+        // const actionButton = document.getElementById('actionButton'); // Removed reference
 
         // --- Mouse Tracking ---
         let mouseX = 0;
@@ -295,7 +287,7 @@
              MOUSE_PARTICLE_CHECK_COUNT: 35, 
              MOUSE_FORCE_STRENGTH: 80        
         };
-        PARAMS.MOUSE_STORM_INFLUENCE_RADIUS_SQ = PARAMS.MOUSE_STORM_INFLUENCE_RADIUS ** 2;
+        PARAMS.MOUSE_STORM_INfluence_RADIUS_SQ = PARAMS.MOUSE_STORM_INFLUENCE_RADIUS ** 2;
         PARAMS.MOUSE_PARTICLE_INTERACTION_RADIUS_SQ = PARAMS.MOUSE_PARTICLE_INTERACTION_RADIUS ** 2;
 
         // --- REMOVIDO: Parâmetros do Starfield ---
@@ -553,11 +545,13 @@
         }
 
         // --- Event Listeners ---
+        /* Removed actionButton listener
         actionButton.addEventListener('click', () => { 
             console.log('Initiating Subduction...'); activeStorms.forEach(storm => { currentTotalParticles -= storm.particles.length; }); currentTotalParticles = Math.max(0, currentTotalParticles); activeStorms = []; console.log('Storms cleared. Spawning mother storm...');
             if (currentTotalParticles < PARAMS.MAX_TOTAL_PARTICLES) { const motherStorm = new Storm(); motherStorm.maxStrength = (PARAMS.MIN_MAX_STRENGTH + PARAMS.MAX_STRENGTH_VARIATION) * PARAMS.MOTHER_STRENGTH_MULT; motherStorm.maxRadius = (PARAMS.MIN_MAX_RADIUS + PARAMS.MAX_RADIUS_VARIATION) * PARAMS.MOTHER_RADIUS_MULT; motherStorm.maxLifespan = (PARAMS.MIN_LIFESPAN + PARAMS.MAX_LIFESPAN_VARIATION) * PARAMS.MOTHER_LIFESPAN_MULT; activeStorms.push(motherStorm); console.log('Mother storm spawned:', motherStorm);
             } else { console.log('Particle cap reached, cannot spawn mother storm.'); }
         });
+        */
         canvas.addEventListener('click', (event) => { 
             if (activeStorms.length < PARAMS.MAX_ACTIVE_STORMS) { const rect = canvas.getBoundingClientRect(); const clickX = event.clientX - rect.left; const clickY = event.clientY - rect.top; activeStorms.push(new Storm(clickX, clickY)); }
         });

@@ -3,17 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- Título Atualizado -->
     <title>Polygonal Spiral [Idle Mechanics]</title>
     
-    <!-- Fonte e Tema CSS -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    <!-- Assuming idle-mechanics-theme.css provides the black background -->
     <link rel="stylesheet" href="idle-mechanics-theme.css">
     
     <style>
-        /* Estilos essenciais mantidos */
+        /* Essential styles */
+        body {
+            margin: 0;
+            padding: 0;
+            /* Explicitly set black background for contrast */
+            background-color: #000;
+            overflow: hidden; /* Hide scrollbars */
+        }
         .spiral-window {
             height: 100vh;
             width: 100vw;
@@ -26,7 +32,6 @@
             width: 100vw;
             height: 100vh;
             animation: spin 30s linear infinite;
-            /* Garante que o SVG esteja atrás do botão */
             position: absolute;
             top: 0;
             left: 0;
@@ -41,7 +46,7 @@
             to { transform: rotate(360deg); }
         }
         
-        /* Wrapper para o botão */
+        /* Wrapper for the button */
         .button-wrapper {
             position: absolute;
             top: 20px;
@@ -53,35 +58,32 @@
 </head>
 <body> 
 
-    <!-- Definição SVG para o gradiente -->
+    <!-- SVG definition for the NEW gradient -->
     <svg width="0" height="0" style="position:absolute;">
         <defs>
             <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                <!-- 
-                  CORRIGIDO: Cores embutidas (hard-coded) para garantir que o SVG as renderize, 
-                  em vez de depender de variáveis CSS externas.
-                -->
-                 <stop offset="0%" style="stop-color: #fff204; stop-opacity:1" /> <!-- Amarelo -->
-                 <stop offset="100%" style="stop-color: #ff0090; stop-opacity:1" /> <!-- Rosa -->
+                <!-- NEW "COOL" THEME -->
+                 <stop offset="0%" style="stop-color: #00ffff; stop-opacity:1" /> <!-- Cyan -->
+                 <stop offset="100%" style="stop-color: #00ff00; stop-opacity:1" /> <!-- Bright Green -->
             </linearGradient>
         </defs>
     </svg>
 
     <main>
-        <!-- Janela da Espiral Poligonal -->
+        <!-- Polygonal Spiral Window -->
         <div class="spiral-window">
              <svg class="spiral-svg" viewBox="-350 -350 700 700">
                  <path class="spiral-path" id="polygonal-path"></path>
              </svg>
         </div>
-        <!-- Botão Atualizado com Classes de Tema -->
+        <!-- Button (assuming styles from theme) -->
         <div class="button-wrapper">
             <button id="mode-toggle" class="im-button"></button>
         </div>
     </main>
 
     <script>
-        // --- JAVASCRIPT INALTERADO ---
+        // --- JAVASCRIPT UNCHANGED ---
         document.addEventListener('DOMContentLoaded', () => {
             const polygonalSpiral = {
                 id: 'polygonal-path',
@@ -137,7 +139,6 @@
 
                 modeToggleButton.addEventListener('click', () => {
                     keepSpinning = !keepSpinning;
-                    // A classe .active é gerenciada pelo tema CSS agora
                     modeToggleButton.classList.toggle('active', keepSpinning); 
 
                     clearTimeout(pauseTimeoutId);
@@ -204,4 +205,3 @@
     </script>
 </body>
 </html>
-

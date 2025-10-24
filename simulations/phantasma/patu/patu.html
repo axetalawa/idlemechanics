@@ -48,10 +48,11 @@
             position: relative;
         }
 
+        /* === FIX 1: Corrected SVG scaling === */
         #owls-section svg {
             display: block;
-            width: 100%; 
-            height: auto; 
+            width: auto;   /* <-- CHANGED */
+            height: 100%;  /* <-- CHANGED */
             overflow: visible;
             position: absolute; 
             top: 50%;
@@ -321,7 +322,7 @@
     </div> <!-- Fim main-content-wrapper -->
 
     <script>
-        // --- JAVASCRIPT INALTERADO ---
+        // --- JAVASCRIPT (Mostly Unchanged) ---
         document.addEventListener('DOMContentLoaded', () => {
             const svgNS = 'http://www.w3.org/2000/svg'; 
             const mainOwlSvgElement = document.querySelector('#owls-section svg'); 
@@ -366,7 +367,37 @@
             baseOwlsData.forEach(owlData => { const owlElement = owlData.element; const leftPupil = owlElement.querySelector('.pupil[cx="-23"]'); const rightPupil = owlElement.querySelector('.pupil[cx="23"]'); const leftEyeCircle = owlElement.querySelector('#left-eye-main-circle'); const rightEyeCircle = owlElement.querySelector('#right-eye-main-circle'); if (leftPupil && leftEyeCircle) { allPupils.push({ pupilElement: leftPupil, eyeCircleElement: leftEyeCircle, parentOwlElement: owlElement, relativeCx: parseFloat(leftPupil.getAttribute('cx')), relativeCy: parseFloat(leftPupil.getAttribute('cy')) }); } if (rightPupil && rightEyeCircle) { allPupils.push({ pupilElement: rightPupil, eyeCircleElement: rightEyeCircle, parentOwlElement: owlElement, relativeCx: parseFloat(rightPupil.getAttribute('cx')), relativeCy: parseFloat(rightPupil.getAttribute('cy')) }); } });
 
             let currentDanceIndex = 0;
-            const dancePatterns = [ [ { x: 400, y: 150 }, { x: 550, y: 250 }, { x: 550, y: 400 }, { x: 400, y: 500 }, { x: 250, y: 400 }, { x: 250, y: 250 } ], [ { x: 150, y: 150 }, { x: 400, y: 150 }, { x: 650, y: 150 }, { x: 150, y: 450 }, { x: 400, y: 450 }, { x: 650, y: 450 } ], [ { x: 400, y: 50 }, { x: 400, y: 150 }, { x: 400, y: 250 }, { x: 400, y: 350 }, { x: 400, y: 450 }, { x: 400, y: 550 } ], [ { x: 400, y: 50 }, { x: 400, y: 300 }, { x: 400, y: 550 }, { x: 150, y: 300 }, { x: 650, y: 300 }, { x: 50, y: 50 } ], [ { x: 400, y: 50 }, { x: 650, y: 300 }, { x: 400, y: 550 }, { x: 150, y: 300 }, { x: 300, y: 200 }, { x: 500, y: 400 } ], [ { x: 400, y: 300 }, { x: 400, y: 200 }, { x: 500, y: 300 }, { x: 400, y: 400 }, { x: 300, y: 300 }, { x: 450, y: 250 } ], [ { x: 100, y: 100 }, { x: 200, y: 200 }, { x: 300, y: 300 }, { x: 400, y: 400 }, { x: 500, y: 500 }, { x: 600, y: 600 } ], [ { x: 200, y: 250 }, { x: 250, y: 350 }, { x: 350, y: 200 }, { x: 450, y: 300 }, { x: 500, y: 400 }, { x: 600, y: 250 } ], [ { x: 400, y: 300 }, { x: 400, y: 250 }, { x: 450, y: 250 }, { x: 450, y: 350 }, { x: 350, y: 350 }, { x: 350, y: 200 } ], [ { x: Math.random() * 700 + 50, y: Math.random() * 500 + 50 }, { x: Math.random() * 700 + 50, y: Math.random() * 500 + 50 }, { x: Math.random() * 700 + 50, y: Math.random() * 500 + 50 }, { x: Math.random() * 700 + 50, y: Math.random() * 500 + 50 }, { x: Math.random() * 700 + 50, y: Math.random() * 500 + 50 }, { x: Math.random() * 700 + 50, y: Math.random() * 500 + 50 } ] ];
+            
+            // === FIX 2: Corrected dancePatterns array ===
+            const dancePatterns = [
+              // Pattern 0 (Circle) - Clamped
+              [ { x: 400, y: 150 }, { x: 550, y: 250 }, { x: 550, y: 400 }, { x: 400, y: 515 }, { x: 250, y: 400 }, { x: 250, y: 250 } ], 
+              // Pattern 1 (Grid) - Already safe
+              [ { x: 150, y: 150 }, { x: 400, y: 150 }, { x: 650, y: 150 }, { x: 150, y: 450 }, { x: 400, y: 450 }, { x: 650, y: 450 } ], 
+              // Pattern 2 (Vertical Line) - Clamped
+              [ { x: 400, y: 85 }, { x: 400, y: 150 }, { x: 400, y: 250 }, { x: 400, y: 350 }, { x: 400, y: 450 }, { x: 400, y: 515 } ], 
+              // Pattern 3 (Cross) - Clamped
+              [ { x: 400, y: 85 }, { x: 400, y: 300 }, { x: 400, y: 515 }, { x: 150, y: 300 }, { x: 650, y: 300 }, { x: 75, y: 85 } ], 
+              // Pattern 4 (Star) - Clamped
+              [ { x: 400, y: 85 }, { x: 650, y: 300 }, { x: 400, y: 515 }, { x: 150, y: 300 }, { x: 300, y: 200 }, { x: 500, y: 400 } ], 
+              // Pattern 5 (Inner Cluster) - Already safe
+              [ { x: 400, y: 300 }, { x: 400, y: 200 }, { x: 500, y: 300 }, { x: 400, y: 400 }, { x: 300, y: 300 }, { x: 450, y: 250 } ], 
+              // Pattern 6 (Diagonal) - Clamped
+              [ { x: 100, y: 100 }, { x: 200, y: 200 }, { x: 300, y: 300 }, { x: 400, y: 400 }, { x: 500, y: 500 }, { x: 600, y: 515 } ], 
+              // Pattern 7 (Offset Cluster) - Already safe
+              [ { x: 200, y: 250 }, { x: 250, y: 350 }, { x: 350, y: 200 }, { x: 450, y: 300 }, { x: 500, y: 400 }, { x: 600, y: 250 } ], 
+              // Pattern 8 (Box) - Already safe
+              [ { x: 400, y: 300 }, { x: 400, y: 250 }, { x: 450, y: 250 }, { x: 450, y: 350 }, { x: 350, y: 350 }, { x: 350, y: 200 } ], 
+              // Pattern 9 (Random) - CORRECTED RANGES
+              [ 
+                { x: Math.random() * 650 + 75, y: Math.random() * 430 + 85 }, 
+                { x: Math.random() * 650 + 75, y: Math.random() * 430 + 85 }, 
+                { x: Math.random() * 650 + 75, y: Math.random() * 430 + 85 }, 
+                { x: Math.random() * 650 + 75, y: Math.random() * 430 + 85 }, 
+                { x: Math.random() * 650 + 75, y: Math.random() * 430 + 85 }, 
+                { x: Math.random() * 650 + 75, y: Math.random() * 430 + 85 } 
+              ] 
+            ];
 
             let animationStartTime = null;
             let layoutChangeTimeout; 
@@ -415,4 +446,3 @@
 
 </body>
 </html>
-
