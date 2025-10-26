@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulation: Halo</title>
+    <!-- Tailwind for utility classes -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <style>
+        /* --- Base CSS --- */
+        body {
+            font-family: 'Inter', sans-serif;
+            /* Bahian-inspired deep blue background */
+            background: #023047;
+            color: #e0e0e0;
+            margin: 0;
+            padding: 0;
+            overflow: hidden; /* Full page scroll disabled */
+        }
+
+        /* --- Simulation-Specific CSS --- */
+        
+        /* Breathing Halo Animation CSS */
+        .halo-container {
+            position: absolute; /* Position within tv-mockup */
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        .halo {
+            position: absolute;
+            /* Make halo fill the smallest viewport dimension */
+            width: 100vmin;
+            height: 100vmin;
+            border-radius: 50%;
+            backdrop-filter: blur(4px);
+            opacity: 0.4; /* Adjusted initial opacity */
+            filter: drop-shadow(0 0 8px rgba(255,255,255,0.08));
+            animation: breathe 7s ease-in-out infinite, colorShift 28s ease-in-out infinite;
+        }
+
+        .halo:nth-child(2) {
+            animation-delay: 2.3s;
+        }
+
+        .halo:nth-child(3) {
+            animation-delay: 4.6s;
+        }
+
+        @keyframes breathe {
+            0%, 100% {
+                transform: scale(0.8); /* Start smaller */
+                opacity: 0.4;
+            }
+            50% {
+                transform: scale(1.1); /* Grow larger */
+                opacity: 0.9;
+            }
+        }
+
+        /* Caribbean/Bahian Palette */
+        @keyframes colorShift {
+            0% { background-color: hsl(185, 80%, 50%); }   /* Turquoise */
+            20% { background-color: hsl(40, 95%, 58%); }    /* Gold */
+            40% { background-color: hsl(10, 85%, 60%); }    /* Coral */
+            60% { background-color: hsl(200, 80%, 60%); }   /* Sky Blue */
+            80% { background-color: hsl(50, 98%, 55%); }    /* Sunny Yellow */
+            100% { background-color: hsl(185, 80%, 50%); }  /* Turquoise */
+        }
+
+    </style>
+</head>
+<body>
+
+    <!-- TV Instance 2: Breathing Halo Animation -->
+    <div class="halo-container">
+        <div class="halo"></div>
+        <div class="halo"></div>
+        <div class="halo"></div>
+    </div>
+
+    <!-- No JavaScript needed for this pure CSS animation -->
+    <script type="module">
+        console.log("Halo simulation running. No interaction required.");
+    </script>
+</body>
+</html>
+

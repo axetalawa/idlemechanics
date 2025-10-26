@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulation: Moiré</title>
+    <!-- Tailwind for utility classes -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <style>
+        /* --- Base CSS --- */
+        body {
+            font-family: 'Inter', sans-serif;
+            /* Bahian-inspired deep blue background */
+            background: #023047;
+            color: #e0e0e0;
+            margin: 0;
+            padding: 0;
+            overflow: hidden; /* Full page scroll disabled */
+        }
+
+        /* --- Simulation-Specific CSS --- */
+        
+        /* Moiré Field Animation CSS */
+        .moire-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        .moire-layer {
+            position: absolute;
+            /* Make layers larger than viewport to ensure full coverage during rotation */
+            width: 150vmax; 
+            height: 150vmax;
+            mix-blend-mode: lighten;
+            opacity: 0.7;
+        }
+
+        .moire-layer:nth-child(1) {
+            animation: rotateCW 90s linear infinite;
+        }
+
+        .moire-layer:nth-child(2) {
+            animation: rotateCCW 130s linear infinite;
+        }
+
+        .moire-container svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Apply colors directly to layers */
+        .moire-layer:nth-child(1) .moire-line { 
+            stroke: hsl(175, 80%, 60%); /* Turquoise */
+            stroke-width: 1.1; 
+            fill: none; 
+            vector-effect: non-scaling-stroke; 
+        }
+        .moire-layer:nth-child(2) .moire-line { 
+            stroke: hsl(45, 95%, 55%); /* Sunny Yellow */
+            stroke-width: 1.1; 
+            fill: none; 
+            vector-effect: non-scaling-stroke; 
+        }
+
+
+        @keyframes rotateCW {
+            from { transform: rotate(0deg); }
+            to   { transform: rotate(360deg); }
+        }
+
+        @keyframes rotateCCW {
+            from { transform: rotate(0deg); }
+            to   { transform: rotate(-360deg); }
+        }
+
+    </style>
+</head>
+<body>
+
+    <!-- TV Instance 3: Moiré Field Animation -->
+    <div class="moire-container">
+        <div class="moire-layer">
+            <svg viewBox="0 0 100 100" preserveAspectRatio="none">
+                <g>
+                    <!-- Horizontal Lines -->
+                    <line class="moire-line" x1="-50" y1="0" x2="150" y2="0" />
+                    <line class="moire-line" x1="-50" y1="5" x2="150" y2="5" />
+                    <line class="moire-line" x1="-50" y1="10" x2="150" y2="10" />
+                    <line class="moire-line" x1="-50" y1="15" x2="150" y2="15" />
+                    <line class="moire-line" x1="-50" y1="20" x2="150" y2="20" />
+                    <line class="moire-line" x1="-50" y1="25" x2="150" y2="25" />
+                    <line class="moire-line" x1="-50" y1="30" x2="150" y2="30" />
+                    <line class="moire-line" x1="-50" y1="35" x2="150" y2="35" />
+                    <line class="moire-line" x1="-50" y1="40" x2="150" y2="40" />
+                    <line class="moire-line" x1="-50" y1="45" x2="150" y2="45" />
+                    <line class="moire-line" x1="-50" y1="50" x2="150" y2="50" />
+                    <line class="moire-line" x1="-50" y1="55" x2="150" y2="55" />
+                    <line class="moire-line" x1="-50" y1="60" x2="150" y2="60" />
+                    <line class="moire-line" x1="-50" y1="65" x2="150" y2="65" />
+                    <line class="moire-line" x1="-50" y1="70" x2="150" y2="70" />
+                    <line class="moire-line" x1="-50" y1="75" x2="150" y2="75" />
+                    <line class="moire-line" x1="-50" y1="80" x2="150" y2="80" />
+                    <line class="moire-line" x1="-50" y1="85" x2="150" y2="85" />
+                    <line class="moire-line" x1="-50" y1="90" x2="150" y2="90" />
+                    <line class="moire-line" x1="-50" y1="95" x2="150" y2="95" />
+                    <line class="moire-line" x1="-50" y1="100" x2="150" y2="100" />
+                </g>
+            </svg>
+        </div>
+        <div class="moire-layer">
+            <svg viewBox="0 0 100 100" preserveAspectRatio="none">
+                <g>
+                    <!-- Radial Lines (approximated with many lines) -->
+                    <line class="moire-line" x1="50" y1="50" x2="50" y2="-50" />
+                    <line class="moire-line" x1="50" y1="50" x2="100" y2="-36.6" />
+                    <line class="moire-line" x1="50" y1="50" x2="136.6" y2="0" />
+                    <line class="moire-line" x1="50" y1="50" x2="150" y2="50" />
+                    <line class="moire-line" x1="50" y1="50" x2="136.6" y2="100" />
+                    <line class="moire-line" x1="50" y1="50" x2="100" y2="136.6" />
+                    <line class="moire-line" x1="50" y1="50" x2="50" y2="150" />
+                    <line class="moire-line" x1="50" y1="50" x2="0" y2="136.6" />
+                    <line class="moire-line" x1="50" y1="50" x2="-36.6" y2="100" />
+                    <line class="moire-line" x1="50" y1="50" x2="-50" y2="50" />
+                    <line class="moire-line" x1="50" y1="50" x2="-36.6" y2="0" />
+                    <line class="moire-line" x1="50" y1="50" x2="0" y2="-36.6" />
+                </g>
+            </svg>
+        </div>
+    </div>
+
+    <!-- No JavaScript needed for this pure CSS animation -->
+    <script type="module">
+        console.log("Moiré simulation running. No interaction required.");
+    </script>
+</body>
+</html>
+

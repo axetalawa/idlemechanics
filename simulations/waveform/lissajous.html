@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulation: Lissajous</title>
+    <!-- Tailwind for utility classes -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <style>
+        /* --- Base CSS --- */
+        body {
+            font-family: 'Inter', sans-serif;
+            /* Bahian-inspired deep blue background */
+            background: #023047;
+            color: #e0e0e0;
+            margin: 0;
+            padding: 0;
+            overflow: hidden; /* Full page scroll disabled */
+        }
+
+        /* --- Simulation-Specific CSS --- */
+        
+        /* Lissajous Mirror Animation CSS */
+        .lissajous-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        .lissajous-container svg {
+            display: block;
+            width: 100%; 
+            height: 100%;
+            max-width: 100vw; 
+            max-height: 100vh;
+            filter: drop-shadow(0 0 20px rgba(255, 183, 3, 0.25)); /* Gold glow */
+        }
+
+        .lissajous-container #lissajous-path {
+            stroke: hsl(38, 98%, 52%); /* Gold/Marigold */
+            stroke-width: 1.4;
+            fill: none;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        .lissajous-container .halo-background {
+            position: absolute;
+            width: 100vmin; /* Relative to viewport */
+            height: 100vmin;
+            border-radius: 50%;
+            background: radial-gradient(circle, hsla(175, 80%, 50%, 0.1), transparent 70%); /* Faint turquoise */
+            animation: pulse 12s ease-in-out infinite;
+            z-index: -1;
+        }
+
+        @keyframes pulse { 
+            0%, 100% { opacity: 0.4; transform: scale(0.95); }
+            50% { opacity: 0.8; transform: scale(1.05); }
+        }
+
+    </style>
+</head>
+<body>
+
+    <!-- TV Instance 4: Lissajous Mirror Animation -->
+    <div class="lissajous-container">
+        <div class="halo-background"></div>
+        <svg class="lissajous-svg" viewBox="-100 -100 200 200">
+            <path id="lissajous-path"></path>
+        </svg>
+    </div>
+
+    <script type="module">
+        let lissajousAnimationFrameId = null;
+        let lissajousT = 0; // Global state for this simulation
+
+        function calculateLissajousPoint(tVal, deltaVal) {
+            const lissajousA = 85, lissajousB = 85, lissajousFreqA = 5, lissajousFreqB = 4;
+            return { x: lissajousA * Math.sin(lissajousFreqA * tVal + deltaVal), y: lissajousB * Math.sin(lissajousFreqB * tVal) };
+        }
+
+        function generateLissajousPath(currentTime, currentDelta) {
+            let pathStr = ""; 
+            const loopLength = Math.PI * 2 * 3; 
+            const startT = currentTime - loopLength;
+            const lissajousNumSegments = 600;
+
+            for (let i = 0; i <= lissajousNumSegments; i++) {
+                const tt = startT + (i / lissajousNumSegments) * loopLength;
+                const { x, y } = calculateLissajousPoint(tt, currentDelta);
+                pathStr += (i === 0 ? `M ${x.toFixed(2)} ${y.toFixed(2)}` : ` L ${x.toFixed(2)} ${y.toFixed(2)}`);
+            }
+            return pathStr;
+        }
+
+        function animateLissajous() {
+            const lissajousContainer = document.querySelector('.lissajous-container');
+            const lissajousPath = lissajousContainer ? lissajousContainer.querySelector('#lissajous-path') : null;
+            const lissajousAnimationSpeed = 0.012;
+            const lissajousInitialDelta = Math.PI / 2; 
+
+            if (!lissajousPath) {
+                if(lissajousAnimationFrameId) cancelAnimationFrame(lissajousAnimationFrameId);
+                return;
+            }
+            
+            lissajousT += lissajousAnimationSpeed;
+            const evolvingDelta = lissajousInitialDelta + Math.sin(lissajousT * 0.1) * Math.PI / 4;
+            lissajousPath.setAttribute("d", generateLissajousPath(lissajousT, evolvingDelta));
+            lissajousAnimationFrameId = requestAnimationFrame(animateLissajous);
+        }
+
+        // --- Setup Logic ---
+        document.addEventListener('DOMContentLoaded', () => {
+            const lissajousContainer = document.querySelector('.lissajous-container');
+            const lissajousPath = lissajousContainer ? lissajousContainer.querySelector('#lissajous-path') : null;
+
+            if (lissajousContainer && lissajousPath) {
+                console.log("Lissajous elements found. Initializing lissajous.");
+                animateLissajous(); // Start animation
+            } else { 
+                console.error("Chamberfield lissajous elements NOT found or some are missing."); 
+            }
+        });
+    </script>
+</body>
+</html>
+

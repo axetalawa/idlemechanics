@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dome of Domes Synaptic</title>
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+      background: black;
+      font-family: 'Inter', sans-serif;
+    }
+    canvas {
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+  <script>
+    // Set up the scene, camera, and renderer
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.01, 100);
+    camera.position.z = 6; // Set initial camera position
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(window.devicePixelRatio);
+    renderer.setClearColor(0x000000, 0); // Transparent background
+    document.body.appendChild(renderer.domElement);
+
+    // Add ambient and point lights to the scene
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
+    scene.add(ambientLight);
+
+    const pointLight = new THREE.PointLight(0xffffff, 2, 100);
+    pointLight.position.set(3, 3, 3);
+    scene.add(pointLight);
+
+    // Create a starfield background
+    const starVertices = [];
+    for (let i = 0; i < 5000; i++) {
+      const x = (Math.random() - 0.5) * 2000;
+      const y = (Math.random() - 0.5) * 2000;
+      const z = (Math.random() - 0.5) * 2000;
+      // Ensure stars are outside the main dome area
+      if (Math.sqrt(x*x + y*y + z*z) > 100) {
+        starVertices.push(x, y, z);
+      }
+    }
+    const starGeometry = new THREE.BufferGeometry();
+    starGeometry.setAttribute('position', new THREE.Float32BufferAttribute(starVertices, 3));
+    const starMaterial = new THREE.PointsMaterial({ color: 0xffffff, size: 0.25 });
+    const starfield = new THREE.Points(starGeometry, starMaterial);
+    scene.add(starfield);
+
+    // Group to hold all dome layers
+    const masterDomeGroup = new THREE.Group();
+    scene.add(masterDomeGroup);
+
+    // Dome configuration parameters
+    const NUM_LAYERS = 10; // Number of dome layers
+    const OUTERMOST_RADIUS = 1.5;
+    const INNERMOST_RADIUS = 0.1;
+    const RADIUS_STEP = (OUTERMOST_RADIUS - INNERMOST_RADIUS) / (NUM_LAYERS - 1);
+    const CLUSTER_COUNT = 12; // Number of "neuron" clusters
+    const clusters = Array.from({ length: CLUSTER_COUNT }, () => []); // Array to hold mesh clusters
+
+    // Define a color palette for the domes - UPDATED WITH NEW COLORS
+    const colorPalette = [
+      new THREE.Color('#FF007F'), // Primary Pink (Electric Placenta Hot Pink)
+      new THREE.Color('#00FFF7'), // Electric Cyan
+      new THREE.Color('#FFEF00'), // Solar Yellow (Electric Solar Yellow)
+      new THREE.Color('#A6FF00'), // Lime Acid Green (Electric Lime Green)
+      new THREE.Color('#4A006F'), // Purple Accent (Dark Mystical Purple)
+      new THREE.Color('#FF5E00')  // Ritual Orange (Electric Blood Orange of Dawn)
+    ];
+
+    // Create a random connectivity matrix for synaptic firing between clusters
+    const connectivityMatrix = Array(CLUSTER_COUNT).fill().map(() =>
+      Array(CLUSTER_COUNT).fill().map(() => Math.random() < 0.25) // 25% chance of connection
+    );
+
+    // Group for synapses (lines between firing triangles)
+    const synapseGroup = new THREE.Group();
+    scene.add(synapseGroup);
+    // Synapse material can pick a color from the new palette or a related one
+    const synapseMaterial = new THREE.LineBasicMaterial({ color: colorPalette[0], transparent: true, opacity: 0.5 }); // Using primary pink for synapses
+
+    /**
+     * Draws a synaptic connection line between two mesh objects.
+     * @param {THREE.Mesh} a - The first mesh object.
+     * @param {THREE.Mesh} b - The second mesh object.
+     * @param {number} intensity - The initial opacity of the synapse line.
+     */
+    function drawSynapse(a, b, intensity) {
+      // Get world positions of the two meshes
+      const points = [a.getWorldPosition(new THREE.Vector3()), b.getWorldPosition(new THREE.Vector3())];
+      const geometry = new THREE.BufferGeometry().setFromPoints(points);
+      const line = new THREE.Line(geometry, synapseMaterial.clone()); // Clone material to allow individual opacity
+      line.material.opacity = Math.max(intensity, 0.1); // Ensure a minimum opacity
+      line.userData.birth = clock.getElapsedTime(); // Store birth time for fading
+      synapseGroup.add(line);
+    }
+
+    /**
+     * Picks a color from the palette based on index and total count.
+     * @param {number} index - Current index.
+     * @param {number} total - Total number of items.
+     * @returns {THREE.Color} - A color from the palette.
+     */
+    function pickPaletteColor(index, total) {
+      // Map index to a color in the palette
+      const i = Math.floor(index / total * colorPalette.length); // Adjusted to span the full palette
+      return colorPalette[i % colorPalette.length]; // Use modulo to loop through colors if total > palette size
+    }
+
+    /**
+     * Creates a single layer of a deconstructed dome (icosahedron made of triangles).
+     * @param {number} radius - The radius of the icosahedron.
+     * @param {number} detail - The detail level of the icosahedron geometry.
+     * @param {THREE.Color} solidColor - Color for the solid mesh.
+     * @param {THREE.Color} wireframeColor - Color for the wireframe mesh.
+     * @param {number} solidOpacity - Opacity for the solid mesh.
+     * @param {number} wireframeOpacity - Opacity for the wireframe mesh.
+     * @returns {THREE.Group} - A group containing all triangle meshes for the layer.
+     */
+    function createDeconstructedDomeLayer(radius, detail, solidColor, wireframeColor, solidOpacity, wireframeOpacity) {
+      const layerGroup = new THREE.Group();
+      const geometry = new THREE.IcosahedronGeometry(radius, detail);
+      const position = geometry.getAttribute('position'); // Get vertex positions
+
+      // Iterate through triangles (each 3 vertices form a triangle)
+      for (let i = 0; i < position.count; i += 3) {
+        const triangle = new THREE.BufferGeometry();
+        // Extract vertices for the current triangle
+        const v1 = new THREE.Vector3().fromBufferAttribute(position, i);
+        const v2 = new THREE.Vector3().fromBufferAttribute(position, i + 1);
+        const v3 = new THREE.Vector3().fromBufferAttribute(position, i + 2);
+
+        const vertices = new Float32Array([...v1.toArray(), ...v2.toArray(), ...v3.toArray()]);
+        triangle.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
+        triangle.computeVertexNormals(); // Needed for proper lighting
+
+        // Create solid material for the triangle
+        const solidMaterial = new THREE.MeshStandardMaterial({
+          color: solidColor,
+          metalness: 0.8,
+          roughness: 0.2,
+          transparent: true,
+          opacity: solidOpacity,
+          side: THREE.DoubleSide, // Render both sides
+          depthWrite: false // Avoid z-fighting with other transparent objects
+        });
+
+        // Create wireframe material for the triangle
+        const wireframeMaterial = new THREE.MeshBasicMaterial({
+          color: wireframeColor,
+          wireframe: true,
+          transparent: true,
+          opacity: wireframeOpacity,
+          depthWrite: false
+        });
+
+        const solidMesh = new THREE.Mesh(triangle, solidMaterial);
+        const wireframeMesh = new THREE.Mesh(triangle, wireframeMaterial);
+
+        const triangleGroup = new THREE.Group(); // Group solid and wireframe for combined animation
+        triangleGroup.add(solidMesh);
+        triangleGroup.add(wireframeMesh);
+
+        // Add custom user data for animation and clustering
+        triangleGroup.userData = {
+          firing: Math.random() < 0.01, // Initial random firing state
+          lastFired: 0,
+          clusterIndex: Math.floor(Math.random() * CLUSTER_COUNT) // Assign to a random cluster
+        };
+
+        clusters[triangleGroup.userData.clusterIndex].push(triangleGroup); // Add to its respective cluster
+        layerGroup.add(triangleGroup);
+      }
+
+      return layerGroup;
+    }
+
+    // Generate all dome layers
+    for (let i = 0; i < NUM_LAYERS; i++) {
+      const radius = OUTERMOST_RADIUS - i * RADIUS_STEP; // Calculate radius for current layer
+      const detail = i === 0 ? 3 : 2; // Innermost layer has more detail
+      const t = i / (NUM_LAYERS - 1); // Normalized position (0 to 1)
+
+      const solidColor = pickPaletteColor(i, NUM_LAYERS);
+      const wireframeColor = solidColor.clone().offsetHSL(0, 0.2, 0.2); // Slightly different color for wireframe
+
+      // Opacity decreases with distance from center
+      const solidOpacity = Math.max(0.4 - t * 0.35, 0.1);
+      const wireframeOpacity = Math.max(0.5 - t * 0.45, 0.15);
+
+      const layer = createDeconstructedDomeLayer(radius, detail, solidColor, wireframeColor, solidOpacity, wireframeOpacity);
+      const offset = i * 0.05; // Small offset for visual separation of layers
+      layer.position.set(offset, offset, offset);
+      masterDomeGroup.add(layer);
+    }
+
+    // Set up OrbitControls for camera interaction
+    const controls = new THREE.OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true; // Smooth camera movement
+    controls.dampingFactor = 0.05;
+    controls.minDistance = 2;
+    controls.maxDistance = 15;
+
+    let isUserInteracting = false;
+    controls.addEventListener('start', () => isUserInteracting = true);
+    controls.addEventListener('end', () => isUserInteracting = false);
+
+    // Define different "modes" for the dome's behavior
+    const MODES = ['WAKING', 'DREAMING', 'MYTHIC'];
+    let currentMode = 'WAKING';
+    let lastModeSwitch = 0; // Timestamp of the last mode switch
+
+    /**
+     * Updates the current mode based on time.
+     * @param {number} time - Current elapsed time from the clock.
+     */
+    function updateMode(time) {
+      if (time - lastModeSwitch > 15) { // Switch mode every 15 seconds
+        const index = (MODES.indexOf(currentMode) + 1) % MODES.length;
+        currentMode = MODES[index];
+        lastModeSwitch = time;
+        document.body.setAttribute('data-mode', currentMode); // Update body attribute for potential CSS styling
+      }
+    }
+
+    // Set up raycaster for mouse interaction (hover/click)
+    const raycaster = new THREE.Raycaster();
+    const mouse = new THREE.Vector2();
+    window.addEventListener('mousemove', (event) => {
+      // Convert mouse coordinates to normalized device coordinates (-1 to +1)
+      mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+      mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+    });
+
+    // Handle fullscreen toggle with 'f' key
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'f' || e.key === 'F') {
+        if (!document.fullscreenElement) {
+          document.body.requestFullscreen();
+          document.body.style.cursor = 'none'; // Hide cursor in fullscreen
+        } else {
+          document.exitFullscreen();
+          document.body.style.cursor = 'default'; // Show cursor after exiting
+        }
+      }
+    });
+
+    const clock = new THREE.Clock(); // Clock for time-based animations
+
+    /**
+     * Main animation loop.
+     */
+    function animate() {
+      requestAnimationFrame(animate); // Request next frame
+
+      const time = clock.getElapsedTime(); // Get elapsed time
+
+      updateMode(time); // Update the current mode
+
+      // Scale the master dome group for a pulsing effect
+      const scale = 1 + Math.sin(time * 0.7) * 0.02;
+      masterDomeGroup.scale.set(scale, scale, scale);
+
+      // Animate point light position
+      pointLight.position.x = Math.sin(time * 0.5) * 4;
+      pointLight.position.z = Math.cos(time * 0.5) * 4;
+
+      // Raycasting for interactive elements (firing on hover)
+      raycaster.setFromCamera(mouse, camera);
+      const interactiveTargets = clusters.flat(); // Flatten all clusters into a single array
+      const intersects = raycaster.intersectObjects(interactiveTargets, true);
+      if (intersects.length > 0) {
+        const hit = intersects[0].object.parent; // Get the parent group (triangleGroup)
+        if (hit && hit.userData) {
+          hit.userData.firing = true;
+          hit.userData.lastFired = time;
+        }
+      }
+
+      // Filter and remove old synapses (lines)
+      synapseGroup.children = synapseGroup.children.filter(line => {
+        const age = clock.getElapsedTime() - line.userData.birth;
+        if (age > 0.5) { // Remove after 0.5 seconds
+          line.geometry.dispose(); // Free up memory
+          synapseGroup.remove(line);
+          return false;
+        }
+        line.material.opacity *= 0.9; // Fade out
+        return true;
+      });
+
+      // Animate individual triangles and handle synaptic connections
+      clusters.forEach(cluster => {
+        cluster.forEach(mesh => {
+          const data = mesh.userData;
+
+          if (data.firing) {
+            // Apply a decay effect for firing animation (scaling up then back)
+            const decay = Math.exp(-(time - data.lastFired) * 4);
+            mesh.scale.setScalar(1 + decay * 0.3);
+            if (decay < 0.01) data.firing = false; // Stop firing animation when decayed
+          } else if (Math.random() < 0.0005) { // Random chance for a triangle to fire
+            data.firing = true;
+            data.lastFired = time;
+            // When a triangle fires, check its cluster's connectivity
+            connectivityMatrix[data.clusterIndex].forEach((linked, targetIdx) => {
+              if (linked) { // If connected to another cluster
+                clusters[targetIdx].forEach(target => {
+                  if (Math.random() < 0.05) { // Small chance to draw a synapse to a triangle in the linked cluster
+                    target.userData.firing = true;
+                    target.userData.lastFired = time;
+                    drawSynapse(mesh, target, 0.6);
+                  }
+                });
+              }
+            });
+          }
+
+          // Apply mode- specific animations
+          if (currentMode === 'DREAMING') {
+            const t = (time - data.lastFired);
+            mesh.scale.setScalar(1 + Math.sin(t * 3) * 0.1); // Pulsing scale
+          } else if (currentMode === 'MYTHIC') {
+            mesh.rotation.y += 0.01;
+            mesh.rotation.x += 0.005;
+          }
+        });
+      });
+
+      // Rotate the entire dome group if the user is not interacting
+      if (!isUserInteracting) {
+        masterDomeGroup.rotation.y += 0.005;
+        masterDomeGroup.rotation.x += 0.0025;
+      }
+
+      controls.update(); // Update orbit controls
+      renderer.render(scene, camera); // Render the scene
+    }
+
+    // Handle window resizing
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+
+    // Start the animation loop when the window loads
+    window.onload = function () {
+      animate();
+    }
+  </script>
+</body>
+</html>

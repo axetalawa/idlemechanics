@@ -8,17 +8,20 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
-    <!-- Assuming idle-mechanics-theme.css provides the black background -->
     <link rel="stylesheet" href="idle-mechanics-theme.css">
 
     <style>
-        /* Essential styles */
+        :root {
+            --electric-cyan: #00FFF7;
+            --primary-glyph-color: #FF1E8E;
+            --dark-bg: #0D0D0D;
+        }
+
         body {
             margin: 0;
             padding: 0;
-            /* Explicitly set black background for contrast */
-            background-color: #000;
-            overflow: hidden; /* Hide scrollbars */
+            background-color: var(--dark-bg);
+            overflow: hidden;
         }
         .spiral-window {
             height: 100vh;
@@ -46,24 +49,17 @@
             to { transform: rotate(360deg); }
         }
          
-        /* Wrapper for the button */
-        .button-wrapper {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            z-index: 100;
-        }
+        /* REMOVED: .button-wrapper styles */
     </style>
 </head>
 <body> 
 
-    <!-- SVG definition for the NEW gradient -->
+    <!-- SVG definition for the new gradient using CSS variables -->
     <svg width="0" height="0" style="position:absolute;">
         <defs>
             <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                <!-- NEW "COOL" THEME -->
-                 <stop offset="0%" style="stop-color: #00ffff; stop-opacity:1" /> <!-- Cyan -->
-                 <stop offset="100%" style="stop-color: #00ff00; stop-opacity:1" /> <!-- Bright Green -->
+                <stop offset="0%" style="stop-color:var(--electric-cyan); stop-opacity:1" />
+                <stop offset="100%" style="stop-color:var(--primary-glyph-color); stop-opacity:1" />
             </linearGradient>
         </defs>
     </svg>
@@ -75,14 +71,10 @@
                 <path class="spiral-path" id="archimedean-path"></path>
              </svg>
         </div>
-         <!-- Button (assuming styles from theme) -->
-        <div class="button-wrapper">
-            <button id="mode-toggle" class="im-button"></button>
-        </div>
+         <!-- REMOVED: Button wrapper and button element -->
     </main>
 
     <script>
-        // --- JAVASCRIPT UNCHANGED ---
         document.addEventListener('DOMContentLoaded', () => {
             const archimedeanSpiral = {
                 id: 'archimedean-path',
@@ -113,7 +105,7 @@
                 if (!pathEl) return;
                 const svgElement = pathEl.closest('.spiral-svg');
                 if (!svgElement) return;
-                const modeToggleButton = document.getElementById('mode-toggle');
+                // REMOVED: modeToggleButton variable
 
                 let startTime = null;
                 const duration = 15000;
@@ -122,30 +114,14 @@
                 const initialStrokeWidth = 1;
                 const finalStrokeWidth = 8;
 
-                let keepSpinning = false;
+                // REMOVED: keepSpinning and pausedAtMax variables
                 let direction = 1; // 1 for growing, -1 for shrinking
-                let pausedAtMax = false;
                 let pauseTimeoutId = null;
 
-                modeToggleButton.addEventListener('click', () => {
-                    keepSpinning = !keepSpinning;
-                    modeToggleButton.classList.toggle('active', keepSpinning);
-
-                    clearTimeout(pauseTimeoutId);
-                    pauseTimeoutId = null;
-
-                    if (!keepSpinning && pausedAtMax) {
-                        pausedAtMax = false;
-                        direction = -1;
-                        startTime = null;
-                    }
-                });
+                // REMOVED: Button click event listener
 
                 function animate(currentTime) {
-                    if (pausedAtMax && keepSpinning) {
-                        requestAnimationFrame(animate);
-                        return; // Stay at max size, CSS handles spinning
-                    }
+                    // REMOVED: pausedAtMax check
 
                     if (startTime === null) startTime = currentTime;
 
@@ -166,23 +142,19 @@
                     const currentStrokeWidth = initialStrokeWidth + (finalStrokeWidth - initialStrokeWidth) * easedProgress;
                     pathEl.style.strokeWidth = `${currentStrokeWidth}px`;
 
+                    // UPDATED: Simplified animation loop logic
                     if (rawProgress >= 1) {
                         if (direction === 1) { // Finished growing
-                            if (keepSpinning) {
-                                pausedAtMax = true;
-                            } else {
-                                if (!pauseTimeoutId) {
-                                    pauseTimeoutId = setTimeout(() => {
-                                        direction = -1;
-                                        startTime = null;
-                                        pauseTimeoutId = null;
-                                    }, 5000); // 5-second pause
-                                }
+                            if (!pauseTimeoutId) {
+                                pauseTimeoutId = setTimeout(() => {
+                                    direction = -1;
+                                    startTime = null;
+                                    pauseTimeoutId = null;
+                                }, 5000); // 5-second pause
                             }
                         } else { // Finished shrinking
                             direction = 1;
                             startTime = null;
-                            pausedAtMax = false;
                         }
                     }
                     requestAnimationFrame(animate);
@@ -195,3 +167,4 @@
     </script>
 </body>
 </html>
+

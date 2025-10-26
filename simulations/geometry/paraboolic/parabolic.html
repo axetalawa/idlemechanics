@@ -3,17 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- Título Atualizado -->
     <title>Parabolic Spiral [Idle Mechanics]</title>
     
-    <!-- Fonte e Tema CSS -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="idle-mechanics-theme.css">
 
     <style>
-        /* Estilos essenciais mantidos */
+        :root {
+            --electric-cyan: #00FFF7;
+            --primary-glyph-color: #FF1E8E;
+            --dark-bg: #0D0D0D;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: var(--dark-bg);
+            overflow: hidden;
+        }
+
         .spiral-window {
             height: 100vh;
             width: 100vw;
@@ -40,27 +50,17 @@
             to { transform: rotate(360deg); }
         }
         
-        /* Wrapper para o botão */
-        .button-wrapper {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            z-index: 100;
-        }
+        /* REMOVED: .button-wrapper styles */
     </style>
 </head>
 <body> 
 
-    <!-- Definição SVG para o gradiente -->
+    <!-- SVG definition for the new gradient using CSS variables -->
     <svg width="0" height="0" style="position:absolute;">
         <defs>
             <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                <!-- 
-                  CORRIGIDO: Cores embutidas (hard-coded) para garantir que o SVG as renderize, 
-                  em vez de depender de variáveis CSS externas.
-                -->
-                 <stop offset="0%" style="stop-color: #fff204; stop-opacity:1" /> <!-- Amarelo -->
-                 <stop offset="100%" style="stop-color: #ff0090; stop-opacity:1" /> <!-- Rosa -->
+                <stop offset="0%" style="stop-color:var(--electric-cyan); stop-opacity:1" />
+                <stop offset="100%" style="stop-color:var(--primary-glyph-color); stop-opacity:1" />
             </linearGradient>
         </defs>
     </svg>
@@ -72,14 +72,10 @@
                 <path class="spiral-path" id="parabolic-path"></path>
             </svg>
         </div>
-        <!-- Botão Atualizado com Classes de Tema -->
-        <div class="button-wrapper">
-            <button id="mode-toggle" class="im-button"></button>
-        </div>
+        <!-- REMOVED: Button wrapper and button element -->
     </main>
 
     <script>
-        // --- JAVASCRIPT INALTERADO ---
         document.addEventListener('DOMContentLoaded', () => {
             const parabolicSpiral = {
                 id: 'parabolic-path',
@@ -92,13 +88,11 @@
                     const finalIterations = 10000;
                     const currentIterations = initialIterations + (finalIterations - initialIterations) * progress;
                     
-                    // First arm
                     for (let i = 0; i < currentIterations; i++) {
                         const angle = 0.1 * i;
                         const r = currentA * Math.sqrt(angle);
                         path += ` L ${r * Math.cos(angle)},${r * Math.sin(angle)}`;
                     }
-                    // Second arm for symmetry
                     path += ' M 0,0';
                     for (let i = 0; i < currentIterations; i++) {
                         const angle = 0.1 * i;
@@ -118,7 +112,7 @@
                 if (!pathEl) return;
                 const svgElement = pathEl.closest('.spiral-svg');
                 if (!svgElement) return;
-                const modeToggleButton = document.getElementById('mode-toggle');
+                // REMOVED: modeToggleButton variable
 
                 let startTime = null;
                 const duration = 15000;
@@ -127,31 +121,14 @@
                 const initialStrokeWidth = 1;
                 const finalStrokeWidth = 8;
 
-                let keepSpinning = false;
+                // REMOVED: keepSpinning and pausedAtMax variables
                 let direction = 1; // 1 for growing, -1 for shrinking
-                let pausedAtMax = false;
                 let pauseTimeoutId = null;
 
-                modeToggleButton.addEventListener('click', () => {
-                    keepSpinning = !keepSpinning;
-                    modeToggleButton.classList.toggle('active', keepSpinning);
-
-                    clearTimeout(pauseTimeoutId);
-                    pauseTimeoutId = null;
-
-                    if (!keepSpinning && pausedAtMax) {
-                        pausedAtMax = false;
-                        direction = -1;
-                        startTime = null;
-                    }
-                });
-
+                // REMOVED: Button click event listener
 
                 function animate(currentTime) {
-                    if (pausedAtMax && keepSpinning) {
-                        requestAnimationFrame(animate);
-                        return; // Stay at max size, CSS handles spinning
-                    }
+                    // REMOVED: pausedAtMax check
 
                     if (startTime === null) startTime = currentTime;
                     
@@ -172,23 +149,19 @@
                     const currentStrokeWidth = initialStrokeWidth + (finalStrokeWidth - initialStrokeWidth) * easedProgress;
                     pathEl.style.strokeWidth = `${currentStrokeWidth}px`;
 
+                    // UPDATED: Simplified animation loop logic
                     if (rawProgress >= 1) {
                         if (direction === 1) { // Finished growing
-                            if (keepSpinning) {
-                                pausedAtMax = true;
-                            } else {
-                                if (!pauseTimeoutId) {
-                                    pauseTimeoutId = setTimeout(() => {
-                                        direction = -1;
-                                        startTime = null;
-                                        pauseTimeoutId = null;
-                                    }, 5000); // 5-second pause
-                                }
+                            if (!pauseTimeoutId) {
+                                pauseTimeoutId = setTimeout(() => {
+                                    direction = -1;
+                                    startTime = null;
+                                    pauseTimeoutId = null;
+                                }, 5000); // 5-second pause
                             }
                         } else { // Finished shrinking
                             direction = 1;
                             startTime = null;
-                            pausedAtMax = false;
                         }
                     }
                     requestAnimationFrame(animate);
