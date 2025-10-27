@@ -1,10 +1,5 @@
-Excellent — now that I’ve reviewed the full simulations (spores, moiré, lissajous, halos, throttle, iris, suction, hurricane, polygonal, patu, and maelstrom), we can rewrite the `README.md` for **Idle Mechanics** as a *complete portfolio artifact*.
-
-This new version references each simulation by name and category, articulates both its aesthetic logic and its underlying code geometry — effectively presenting the repo as both a *technical system* and a *conceptual anthology*.
-
 ---
 
-```markdown
 # 🕳️ Idle Mechanics  
 ### Ritual Machines for Useless Beauty and Recursive Attention  
 
@@ -21,7 +16,7 @@ Built as part of the **Mute Logic Lab** in Salvador, Bahia, this work examines t
 
 ---
 
-## 🧩 Architecture
+## Architecture
 
 Idle Mechanics is composed of two interacting layers:
 
@@ -37,7 +32,7 @@ The framework includes:
 
 ---
 
-## 📂 Repository Structure
+## Repository Structure
 
 ```
 
@@ -70,7 +65,7 @@ idle-mechanics/
 
 ---
 
-## 🌐 Simulation Index
+## Simulation Index
 
 ### **GEOMETRY**
 - **Polygonal Spiral** — SVG line spiraling through Euclidean recursion; drawn frame by frame using cubic easing to emulate architectural unfolding:contentReference[oaicite:0]{index=0}.  
@@ -118,7 +113,7 @@ idle-mechanics/
 
 ---
 
-## ⚙️ Local Setup
+## Local Setup
 
 ### 1. Clone
 ```bash
@@ -139,7 +134,7 @@ Then visit
 
 ---
 
-## 🧠 Design Grammar
+## Design Grammar
 
 Each simulation follows three design principles:
 
@@ -154,7 +149,7 @@ No build chain, no frameworks — **browser-native ritual architecture**.
 
 ---
 
-## 🎨 Color + Typography System
+## Color + Typography System
 
 | Variable                | Role                 | Example                                        |
 | ----------------------- | -------------------- | ---------------------------------------------- |
@@ -168,7 +163,7 @@ Cursor states: hidden or custom for meditative immersion.
 
 ---
 
-## 🪶 Framework Logic
+## Framework Logic
 
 ### `generateManifest.js`
 
@@ -200,7 +195,7 @@ Supports timed auto-play and random category traversal.
 
 ---
 
-## 🚀 Deployment
+## Deployment
 
 * **Railway**
 
@@ -216,7 +211,7 @@ Supports timed auto-play and random category traversal.
 
 ---
 
-## 🪶 Forward Trajectory
+## Forward Trajectory
 
 * [ ] Add **audio-reactive shaders** (Web Audio API → visual amplitude modulation)
 * [ ] Integrate **metadata overlays** per simulation
