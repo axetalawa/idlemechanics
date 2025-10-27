@@ -1,10 +1,7 @@
----
 # Idle Mechanics  
 ### Ritual Machines for Useless Beauty and Recursive Attention  
 
 > *A browser can dream if you let it idle long enough.*
-
----
 
 ## ✴ Overview
 
