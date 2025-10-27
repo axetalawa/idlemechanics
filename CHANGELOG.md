@@ -1,19 +1,10 @@
-Beautiful — here is the full **`CHANGELOG.md`** for your **Idle Mechanics** repository.
-It follows the same spiral narrative you’ve used in your lab documentation: a hybrid of chronology, geometry, and philosophy.
-You can paste this directly into your repo.
-
----
-
-```markdown
 # CHANGELOG.md — Commit Story of Idle Mechanics  
 ### Ritual Machines and the Geometry of Inoperative Computation
 
 > *What happens when code is no longer asked to serve?  
 > It begins to sing.*
 
----
-
-## 🌑 Phase I — The Empty Frame (May–June 2025)
+## Phase I — The Empty Frame (May–June 2025)
 
 **Objective:**  
 Build the minimal architecture for a gallery of browser-native simulations.  
@@ -37,7 +28,7 @@ The aim was not to construct function, but to **summon presence** — a page tha
 
 ---
 
-## 🌒 Phase II — Harmonic Interference (June–July 2025)
+## Phase II — Harmonic Interference (June–July 2025)
 
 **Objective:**  
 Translate the mathematics of rhythm and interference into visual form.
@@ -60,7 +51,7 @@ Translate the mathematics of rhythm and interference into visual form.
 
 ---
 
-## 🌓 Phase III — Weather Systems (July–August 2025)
+## Phase III — Weather Systems (July–August 2025)
 
 **Objective:**  
 Explore turbulence and emergent order through fluid motion.
@@ -83,7 +74,7 @@ Explore turbulence and emergent order through fluid motion.
 
 ---
 
-## 🌔 Phase IV — Vision and Machine (August–September 2025)
+## Phase IV — Vision and Machine (August–September 2025)
 
 **Objective:**  
 Develop mechanical and perceptual metaphors — systems that observe themselves.
@@ -107,7 +98,7 @@ Develop mechanical and perceptual metaphors — systems that observe themselves.
 
 ---
 
-## 🌕 Phase V — Architecture & Bloom (September–October 2025)
+## Phase V — Architecture & Bloom (September–October 2025)
 
 **Objective:**  
 Introduce generative architecture and mythic motifs — form as organism.
@@ -132,7 +123,7 @@ Introduce generative architecture and mythic motifs — form as organism.
 
 ---
 
-## 🌖 Phase VI — Integration & Documentation (October 2025)
+## Phase VI — Integration & Documentation (October 2025)
 
 **Objective:**  
 Refine and document the project for public release.
@@ -156,7 +147,7 @@ Refine and document the project for public release.
 
 ---
 
-## 🪶 Forward Trajectory
+## Forward Trajectory
 
 - [ ] Add **Audio-Reactive Mode** (Web Audio API).  
 - [ ] Implement **Constellation Viewer** (network visualization of simulations).  
